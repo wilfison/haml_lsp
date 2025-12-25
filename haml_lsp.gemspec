@@ -34,6 +34,8 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "haml_lint", "~> 0.67"
 
+  spec.add_development_dependency "minitest", "~> 5.0"
+
   # For more information and examples about making a new gem, check out our
   # guide at: https://bundler.io/guides/creating_gem.html
 end

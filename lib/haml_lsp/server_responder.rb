@@ -45,6 +45,8 @@ module HamlLsp::ServerResponder
   end
 
   def log_info(message)
+    return if ENV["HAML_LSP_LOG_LEVEL"] == "fatal"
+
     warn("[haml-lsp] INFO: #{message}")
   end
 
