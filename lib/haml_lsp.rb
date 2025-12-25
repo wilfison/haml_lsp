@@ -1,8 +1,13 @@
 # frozen_string_literal: true
 
-require_relative "haml_lsp/version"
+require "haml_lint"
 
-module HamlLsp
+require_relative "haml_lsp/version"
+require_relative "haml_lsp/server_responder"
+require_relative "haml_lsp/server"
+require_relative "haml_lsp/linter"
+require_relative "haml_lsp/linter/runner"
+
+module HamlLsp # rubocop:disable Style/ClassAndModuleChildren
   class Error < StandardError; end
-  # Your code goes here...
 end

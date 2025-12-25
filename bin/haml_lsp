@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require_relative "../lib/haml_lsp"
+
+HamlLsp::Server.new(
+  use_bundle: ARGV.include?("--use-bundle"),
+  enable_lint: ARGV.include?("--enable-lint")
+).start

@@ -1,5 +1,20 @@
 AllCops:
+  DisplayCopNames: true
+  DisplayStyleGuide: true
+  NewCops: enable
   TargetRubyVersion: 3.2
+
+Style/FrozenStringLiteralComment:
+  Enabled: true
+  SafeAutoCorrect: true
+
+Metrics/MethodLength:
+  Enabled: true
+  Max: 20
+
+Style/ClassAndModuleChildren:
+  Enabled: true
+  EnforcedStyle: compact
 
 Style/StringLiterals:
   EnforcedStyle: double_quotes

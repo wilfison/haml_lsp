@@ -17,6 +17,7 @@ Gem::Specification.new do |spec|
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = "https://github.com/wilfison/haml_lsp"
   spec.metadata["changelog_uri"] = "https://github.com/wilfison/haml_lsp/blob/main/CHANGELOG.md"
+  spec.metadata["rubygems_mfa_required"] = "true"
 
   # Specify which files should be added to the gem when it is released.
   # The `git ls-files -z` loads the files in the RubyGem that have been added into git.
@@ -28,12 +29,10 @@ Gem::Specification.new do |spec|
     end
   end
   spec.bindir = "exe"
-  spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
+  spec.executables = ["haml_lsp"]
   spec.require_paths = ["lib"]
 
-  # LSP and HAML dependencies
-  spec.add_dependency "haml", "~> 6.0"
-  spec.add_dependency "language_server-protocol", "~> 3.17"
+  spec.add_dependency "haml_lint", "~> 0.67"
 
   # For more information and examples about making a new gem, check out our
   # guide at: https://bundler.io/guides/creating_gem.html
