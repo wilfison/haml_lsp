@@ -67,10 +67,7 @@ module HamlLsp
         id: id,
         result: [
           HamlLsp::Interface::TextEdit.new(
-            range: HamlLsp::Interface::Range.new(
-              start: HamlLsp::Interface::Position.new(line: 0, character: 0),
-              end: HamlLsp::Interface::Position.new(line: Float::INFINITY, character: Float::INFINITY)
-            ),
+            range: full_content_range(formatted_content),
             new_text: formatted_content
           )
         ]
@@ -125,6 +122,17 @@ module HamlLsp
       )
 
       send_message(notification)
+    end
+
+    # returns a Range that covers the full content
+    def full_content_range(content)
+      line_count = content.lines.size
+      last_line_length = content.lines.last&.chomp&.length || 0
+
+      HamlLsp::Interface::Range.new(
+        start: HamlLsp::Interface::Position.new(line: 0, character: 0),
+        end: HamlLsp::Interface::Position.new(line: line_count, character: last_line_length)
+      )
     end
   end
 end

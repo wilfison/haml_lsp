@@ -27,19 +27,25 @@ module HamlLsp
         send_message(response_message) if response_message
       end
     rescue StandardError => e
-      log_error("Fatal error in LSP wrapper: #{e.message}")
+      log_error("Fatal error: #{e.message}")
       log_error(e.backtrace.join("\n"))
       exit(1)
     end
 
     private
 
-    def handle_request(request)
-      case request[:method]
+    def store
+      @store ||= HamlLsp::Store.new
+    end
+
+    def handle_request(request) # rubocop:disable Metrics/CyclomaticComplexity,Metrics/AbcSize
+      case request.method
       when "initialize"
         handle_initialize(request)
       when "textDocument/didOpen", "textDocument/didChange", "textDocument/didSave"
         handle_did_change(request)
+      when "textDocument/didClose"
+        store.delete(request.document_uri)
       when "textDocument/formatting"
         handle_formatting(request)
       when "textDocument/completion"
@@ -49,6 +55,10 @@ module HamlLsp
       when "exit"
         exit(0)
       end
+    rescue StandardError => e
+      log_error("Error handling request #{request.method}: #{e.message}")
+      log_error(e.backtrace.join("\n"))
+      show_error_message("HAML LSP error: #{e.message}")
     end
 
     def handle_initialize(request)
@@ -59,20 +69,18 @@ module HamlLsp
     end
 
     def handle_did_change(request)
+      store.set(request.document_uri, request.document_content)
+
       return unless enable_lint
 
       content = request.document_content
       diagnostics = linter.lint_file(request.document_uri_path, content)
 
-      lsp_respond_to_diagnostics(
-        request.id,
-        request.document_uri,
-        diagnostics
-      )
+      lsp_respond_to_diagnostics(request.document_uri, diagnostics)
     end
 
     def handle_formatting(request)
-      content = request.document_content
+      content = store.get(request.document_uri)&.content || ""
       formatted_content = linter.format_file(request.document_uri_path, content)
 
       lsp_respond_to_formatting(request.id, formatted_content)

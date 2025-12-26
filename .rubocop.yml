@@ -6,6 +6,11 @@ AllCops:
   NewCops: enable
   TargetRubyVersion: 3.2
 
+Style/ClassAndModuleChildren:
+  Enabled: true
+  EnforcedStyle: nested
+  SafeAutoCorrect: true
+
 Style/FrozenStringLiteralComment:
   Enabled: true
   SafeAutoCorrect: true

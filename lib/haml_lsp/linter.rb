@@ -19,7 +19,7 @@ module HamlLsp
         reporter: reporter
       )
 
-      parse_lint_reports(report.lints)
+      parse_lint_reports(report.lints, file_content)
     end
 
     def format_file(file_path, file_content)
@@ -56,20 +56,11 @@ module HamlLsp
       @config_file = possible_paths.find { |path| File.exist?(path) }
     end
 
-    def parse_lint_reports(reports) # rubocop:disable Metrics/AbcSize
+    def parse_lint_reports(reports, file_content)
       return [] if reports.empty?
 
       reports.map do |report|
-        range = HamlLsp::Interface::Range.new(
-          start: HamlLsp::Interface::Position.new(
-            line: report.line - 1,
-            character: 0
-          ),
-          end: HamlLsp::Interface::Position.new(
-            line: report.line - 1,
-            character: 0
-          )
-        )
+        range = report_range_for_line(file_content, report.line - 1)
 
         HamlLsp::Interface::Diagnostic.new(
           range: range,
@@ -90,6 +81,26 @@ module HamlLsp
       else
         HamlLsp::Constant::DiagnosticSeverity::INFORMATION
       end
+    end
+
+    def report_range_for_line(content, line_number)
+      line = content.to_s.lines[line_number].to_s
+      sanitized_line = line.chomp
+
+      HamlLsp::Interface::Range.new(
+        start: HamlLsp::Interface::Position.new(
+          line: line_number,
+          character: first_non_empty_line_character(sanitized_line)
+        ),
+        end: HamlLsp::Interface::Position.new(
+          line: line_number,
+          character: sanitized_line.empty? ? line.length : sanitized_line.length
+        )
+      )
+    end
+
+    def first_non_empty_line_character(line)
+      line.index(/[^ \t]/) || line.length
     end
   end
 end

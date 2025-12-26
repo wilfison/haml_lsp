@@ -41,9 +41,10 @@ module HamlLsp
     end
 
     def document_content
-      if method == "textDocument/didOpen"
+      case method
+      when "textDocument/didOpen", "textDocument/formatting"
         params[:textDocument][:text]
-      elsif method == "textDocument/didChange"
+      when "textDocument/didChange"
         # For full document sync, the last change contains the full text
         changes = params[:contentChanges]
         changes.last[:text] if changes && !changes.empty?
@@ -88,7 +89,6 @@ module HamlLsp
     end
 
     def write(message)
-      message[:jsonrpc] = "2.0"
       json_message = message.to_json
 
       @io.write("Content-Length: #{json_message.bytesize}\r\n\r\n#{json_message}")
