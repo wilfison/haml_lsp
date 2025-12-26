@@ -5,50 +5,52 @@ require "test_helper"
 class HamlLsp::ServerResponderTest < Minitest::Test
   class TestServer
     include HamlLsp::ServerResponder
+
+    # Expose send_response for testing
+    attr_reader :last_response
+
+    def send_message(message)
+      @last_response = message
+    end
   end
 
   def setup
     @server = TestServer.new
   end
 
-  def test_lsp_response_json_with_result
-    response = @server.lsp_response_json(id: 1, result: { success: true })
+  def test_lsp_respond_to_initialize
+    @server.lsp_respond_to_initialize(1)
 
-    assert_equal "2.0", response["jsonrpc"]
-    assert_equal 1, response["id"]
-    assert_equal({ success: true }, response["result"])
+    response = @server.last_response
+
+    assert_instance_of LanguageServer::Protocol::Interface::ResponseMessage, response
+    assert_equal 1, response.attributes[:id]
+    assert_instance_of LanguageServer::Protocol::Interface::InitializeResult, response.attributes[:result]
   end
 
-  def test_lsp_response_json_with_method_and_params
-    response = @server.lsp_response_json(
-      id: 2,
-      method: "testMethod",
-      params: { key: "value" }
-    )
+  def test_lsp_respond_to_diagnostics
+    diagnostics = []
+    @server.lsp_respond_to_diagnostics("file:///test.haml", diagnostics)
 
-    assert_equal "2.0", response["jsonrpc"]
-    assert_equal 2, response["id"]
-    assert_equal "testMethod", response["method"]
-    assert_equal({ key: "value" }, response["params"])
+    notification = @server.last_response
+
+    assert_instance_of LanguageServer::Protocol::Interface::NotificationMessage, notification
+    assert_equal "textDocument/publishDiagnostics", notification.attributes[:method]
+    assert_instance_of LanguageServer::Protocol::Interface::PublishDiagnosticsParams, notification.attributes[:params]
   end
 
-  def test_lsp_response_json_with_error
-    response = @server.lsp_response_json(
-      id: 3,
-      error: { code: -32_600, message: "Invalid Request" }
-    )
+  def test_show_error_message
+    @server.show_error_message("Test error")
 
-    assert_equal "2.0", response["jsonrpc"]
-    assert_equal 3, response["id"]
-    assert_equal({ code: -32_600, message: "Invalid Request" }, response["error"])
-  end
+    notification = @server.last_response
 
-  def test_lsp_capabilities
-    capabilities = @server.lsp_capabilities
+    assert_instance_of LanguageServer::Protocol::Interface::NotificationMessage, notification
+    assert_equal "window/showMessage", notification.attributes[:method]
 
-    assert_instance_of Hash, capabilities
-    assert capabilities[:textDocumentSync]
-    assert_equal true, capabilities[:textDocumentSync][:openClose]
-    assert_equal 1, capabilities[:textDocumentSync][:change]
+    params = notification.attributes[:params]
+
+    assert_instance_of LanguageServer::Protocol::Interface::ShowMessageParams, params
+    assert_equal "Test error", params.attributes[:message]
+    assert_equal LanguageServer::Protocol::Constant::MessageType::ERROR, params.attributes[:type]
   end
 end

@@ -35,7 +35,7 @@ class HamlLsp::LinterTest < Minitest::Test
     assert_nil @linter.config_file
   end
 
-  def test_diagnostic_hash_structure
+  def test_diagnostic_hash_structure # rubocop:disable Metrics/AbcSize
     file_path = "/tmp/test.haml"
     # HAML com possíveis problemas de lint
     file_content = "%h1 Hello\n    %p This is bad indentation\n"
@@ -43,34 +43,30 @@ class HamlLsp::LinterTest < Minitest::Test
     diagnostics = @linter.lint_file(file_path, file_content)
 
     # Se houver diagnósticos, testa a estrutura
-    return if diagnostics.empty?
+    skip if diagnostics.empty?
 
     diagnostic = diagnostics.first
 
-    # Verifica que tem exatamente as chaves esperadas
-    expected_keys = %i[range severity message codeDescription code source]
-    assert_equal expected_keys.sort, diagnostic.keys.sort
+    # Verifica que é um objeto Diagnostic do LSP
+    assert_instance_of LanguageServer::Protocol::Interface::Diagnostic, diagnostic
+
+    # Verifica as propriedades do diagnostic
+    assert_instance_of LanguageServer::Protocol::Interface::Range, diagnostic.attributes[:range]
+    assert_instance_of Integer, diagnostic.attributes[:severity]
+    assert_instance_of String, diagnostic.attributes[:message]
+    assert_instance_of String, diagnostic.attributes[:code]
+    assert_instance_of String, diagnostic.attributes[:source]
 
     # Verifica a estrutura de range
-    assert diagnostic.key?(:range)
-    assert diagnostic[:range].key?(:start)
-    assert diagnostic[:range].key?(:end)
-    assert diagnostic[:range][:start].key?(:line)
-    assert diagnostic[:range][:start].key?(:character)
-    assert diagnostic[:range][:end].key?(:line)
-    assert diagnostic[:range][:end].key?(:character)
+    range = diagnostic.attributes[:range]
 
-    # Verifica os tipos
-    assert_kind_of Integer, diagnostic[:severity]
-    assert_kind_of String, diagnostic[:message]
-    assert_kind_of String, diagnostic[:code]
-    assert_kind_of String, diagnostic[:source]
-    assert_nil diagnostic[:codeDescription]
+    assert_instance_of LanguageServer::Protocol::Interface::Position, range.attributes[:start]
+    assert_instance_of LanguageServer::Protocol::Interface::Position, range.attributes[:end]
 
     # Verifica que severity está entre 1 e 3 (Error, Warning, Info)
-    assert_includes [1, 2, 3], diagnostic[:severity]
+    assert_includes [1, 2, 3], diagnostic.attributes[:severity]
 
     # Verifica que source é haml_lint ou rubocop
-    assert_includes %w[haml_lint rubocop], diagnostic[:source]
+    assert_includes %w[haml_lint rubocop], diagnostic.attributes[:source]
   end
 end

@@ -3,6 +3,7 @@ PATH
   specs:
     haml_lsp (0.1.0)
       haml_lint (~> 0.67)
+      language_server-protocol (~> 3.17.0)
 
 GEM
   remote: https://rubygems.org/

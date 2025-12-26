@@ -46,32 +46,39 @@ class HamlLsp::Linter
     @config_file = possible_paths.find { |path| File.exist?(path) }
   end
 
-  def parse_lint_reports(reports)
+  def parse_lint_reports(reports) # rubocop:disable Metrics/AbcSize
     return [] if reports.empty?
 
     reports.map do |report|
-      {
-        range: {
-          start: { line: report.line - 1, character: 0 },
-          end: { line: report.line - 1, character: 0 }
-        },
+      range = HamlLsp::Interface::Range.new(
+        start: HamlLsp::Interface::Position.new(
+          line: report.line - 1,
+          character: 0
+        ),
+        end: HamlLsp::Interface::Position.new(
+          line: report.line - 1,
+          character: 0
+        )
+      )
+
+      HamlLsp::Interface::Diagnostic.new(
+        range: range,
         severity: map_severity(report.severity.to_s),
         message: report.message,
-        codeDescription: nil,
         code: report.linter.name,
         source: report.linter.name == "RuboCop" ? "rubocop" : "haml_lint"
-      }
+      )
     end
   end
 
   def map_severity(severity)
     case severity
     when "warning"
-      2 # Warning
+      HamlLsp::Constant::DiagnosticSeverity::WARNING
     when "error", "fatal"
-      1 # Error
+      HamlLsp::Constant::DiagnosticSeverity::ERROR
     else
-      3 # Default to Information
+      HamlLsp::Constant::DiagnosticSeverity::INFORMATION
     end
   end
 end

@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.email = ["wilfisonbatista@gmail.com"]
 
   spec.summary = "Language Server Protocol implementation for HAML"
-  spec.description = "A Ruby implementation of the Language Server Protocol (LSP) for HAML, providing features like autocomplete, diagnostics, and code navigation for HAML templates."
+  spec.description = "A Ruby implementation of the Language Server Protocol (LSP) for HAML, providing features like autocomplete, diagnostics, and code navigation for HAML templates." # rubocop:disable Layout/LineLength
   spec.homepage = "https://github.com/wilfison/haml_lsp"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.2.0"
@@ -33,8 +33,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency "haml_lint", "~> 0.67"
-
-  spec.add_development_dependency "minitest", "~> 5.0"
+  spec.add_dependency "language_server-protocol", "~> 3.17.0"
 
   # For more information and examples about making a new gem, check out our
   # guide at: https://bundler.io/guides/creating_gem.html

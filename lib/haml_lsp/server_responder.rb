@@ -2,46 +2,57 @@
 
 # LSP-related utilities and helpers
 module HamlLsp::ServerResponder
-  LSP_CAPABILITIES = {
-    textDocumentSync: {
-      openClose: true,
-      change: 1, # Full document sync
-      save: { includeText: false }
-    }
-  }.freeze
-
   def lsp_respond_to_initialize(id)
-    response = lsp_response_json(
-      id: id,
-      result: {
-        capabilities: LSP_CAPABILITIES,
-        serverInfo: {
-          name: HamlLsp.lsp_name,
-          version: HamlLsp::VERSION
-        }
+    capabilities = HamlLsp::Interface::ServerCapabilities.new(
+      text_document_sync: HamlLsp::Interface::TextDocumentSyncOptions.new(
+        open_close: true,
+        change: HamlLsp::Constant::TextDocumentSyncKind::FULL,
+        save: HamlLsp::Interface::SaveOptions.new(include_text: false)
+      )
+    )
+
+    result = HamlLsp::Interface::InitializeResult.new(
+      capabilities: capabilities,
+      server_info: {
+        name: "haml_lsp",
+        version: HamlLsp::VERSION
       }
     )
 
-    send_response(response)
+    message = HamlLsp::Interface::ResponseMessage.new(
+      jsonrpc: "2.0",
+      id: id,
+      result: result
+    )
+
+    send_message(message)
   end
 
-  def lsp_respond_to_diagnostics(id, uri, diagnostics)
-    response = lsp_response_json(
-      id: id,
+  def lasp_respond_to_shutdown(request)
+    HamlLsp::Interface::ResponseMessage.new(
+      jsonrpc: "2.0",
+      id: request[:id],
+      result: nil
+    )
+  end
+
+  def lsp_respond_to_diagnostics(uri, diagnostics)
+    params = HamlLsp::Interface::PublishDiagnosticsParams.new(
+      uri: uri,
+      diagnostics: diagnostics
+    )
+
+    notification = HamlLsp::Interface::NotificationMessage.new(
+      jsonrpc: "2.0",
       method: "textDocument/publishDiagnostics",
-      params: {
-        uri: uri,
-        diagnostics: diagnostics
-      }
+      params: params
     )
 
-    send_response(response)
+    send_message(notification)
   end
 
-  def send_response(response)
-    content = response.to_json
-    $stdout.write("Content-Length: #{content.bytesize}\r\n\r\n#{content}")
-    $stdout.flush
+  def send_message(message)
+    @writer.write(message)
   end
 
   def log_info(message)
@@ -55,34 +66,17 @@ module HamlLsp::ServerResponder
   end
 
   def show_error_message(message)
-    response = lsp_response_json(
-      id: nil,
-      method: "window/showMessage",
-      params: {
-        type: 1, # Error
-        message: message
-      }
+    params = HamlLsp::Interface::ShowMessageParams.new(
+      type: HamlLsp::Constant::MessageType::ERROR,
+      message: message
     )
 
-    send_response(response)
-  end
+    notification = HamlLsp::Interface::NotificationMessage.new(
+      jsonrpc: "2.0",
+      method: "window/showMessage",
+      params: params
+    )
 
-  def lsp_response_json(id:, method: nil, result: nil, params: nil, error: nil)
-    response = { "jsonrpc" => "2.0", "id" => id }
-    response["method"] = method if method
-    response["params"] = params if params
-    response["result"] = result if result
-    response["error"] = error if error
-    response
-  end
-
-  def lsp_capabilities
-    {
-      textDocumentSync: {
-        openClose: true,
-        change: 1, # Full document sync
-        save: { includeText: false }
-      }
-    }
+    send_message(notification)
   end
 end
