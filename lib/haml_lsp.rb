@@ -8,8 +8,9 @@ require_relative "haml_lsp/utils"
 require_relative "haml_lsp/server_responder"
 require_relative "haml_lsp/server"
 require_relative "haml_lsp/linter"
-require_relative "haml_lsp/linter/runner"
+require_relative "haml_lsp/lint/runner"
+require_relative "haml_lsp/rails/detector"
 
-module HamlLsp # rubocop:disable Style/ClassAndModuleChildren
+module HamlLsp
   class Error < StandardError; end
 end
