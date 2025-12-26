@@ -2,6 +2,9 @@
 
 A Ruby implementation of the [Language Server Protocol](https://microsoft.github.io/language-server-protocol/) for HAML templates. This language server provides intelligent code assistance for HAML files in editors that support LSP.
 
+> [!WARNING]
+> This project is currently in early development. Features may be incomplete or unstable. Contributions and feedback are welcome!
+
 ## Features
 
 - 🎯 **Syntax Validation**: Real-time diagnostics for HAML syntax errors
