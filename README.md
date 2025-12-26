@@ -53,6 +53,37 @@ You can start the language server manually:
 haml_lsp --stdio
 ```
 
+### HAML Autocomplete
+
+HAML LSP provides intelligent autocomplete for HAML syntax as you type:
+
+**HTML Tags**: Autocomplete for all common HTML elements including:
+
+- Structural tags: `div`, `span`, `section`, `article`, `header`, `footer`, `nav`, `main`
+- Text elements: `p`, `h1`-`h6`, `strong`, `em`, `code`, `pre`
+- Forms: `form`, `input`, `button`, `select`, `textarea`, `label`
+- Media: `img`, `video`, `audio`, `iframe`
+- Tables: `table`, `thead`, `tbody`, `tr`, `th`, `td`
+- And many more...
+
+**HAML Tags**: Autocomplete for HAML-specific syntax with the `%` prefix:
+
+- `%div`, `%span`, `%p`, `%a`, etc.
+- Common patterns like `%ul`, `%li`, `%table`, `%tr`, `%td`
+
+**HTML Attributes**: Intelligent attribute suggestions including:
+
+- Global attributes: `id`, `class`, `style`, `title`, `data-*`, `aria-*`
+- Tag-specific attributes (e.g., `href` and `target` for `<a>` tags, `src` and `alt` for `<img>` tags)
+- Form attributes: `type`, `name`, `value`, `placeholder`, `required`, etc.
+
+**HAML Attribute Syntax**: Shortcuts for HAML-specific attribute notations:
+
+- `.` - Class shortcut (e.g., `%div.container`)
+- `#` - ID shortcut (e.g., `%div#main`)
+- `{` - Ruby hash attributes (e.g., `%div{class: "container"}`)
+- `(` - HTML-style attributes (e.g., `%div(class="container")`)
+
 ### Rails Integration
 
 When working in a Rails project, HAML LSP automatically detects your project and provides intelligent autocomplete for Rails route helpers.

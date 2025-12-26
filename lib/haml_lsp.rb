@@ -11,6 +11,8 @@ require_relative "haml_lsp/linter"
 require_relative "haml_lsp/lint/runner"
 require_relative "haml_lsp/rails/detector"
 require_relative "haml_lsp/rails/routes_extractor"
+require_relative "haml_lsp/haml/tags_provider"
+require_relative "haml_lsp/haml/attributes_provider"
 
 module HamlLsp
   class Error < StandardError; end

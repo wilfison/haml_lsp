@@ -81,7 +81,12 @@ module HamlLsp
     def handle_completion(request)
       items = []
 
-      items = rails_routes if is_rails_project
+      # Add HAML tags and attributes completions
+      items += HamlLsp::Haml::TagsProvider.completion_items
+      items += HamlLsp::Haml::AttributesProvider.completion_items
+
+      # Add Rails routes if in a Rails project
+      items += rails_routes if is_rails_project
 
       lsp_respond_to_completion(request.id, items)
     end
