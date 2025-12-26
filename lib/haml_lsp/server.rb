@@ -37,41 +37,38 @@ class HamlLsp::Server
       handle_initialize(request)
     when "textDocument/didOpen", "textDocument/didChange", "textDocument/didSave"
       handle_did_change(request)
-      nil
+    when "textDocument/formatting"
+      handle_formatting(request)
     when "shutdown"
-      lasp_respond_to_shutdown(request)
+      lsp_respond_to_shutdown(request)
     when "exit"
       exit(0)
     end
   end
 
   def handle_initialize(request)
-    @root_uri = request[:params][:rootUri]
+    @root_uri = request.root_uri
 
-    lsp_respond_to_initialize(request[:id])
+    lsp_respond_to_initialize(request.id)
   end
 
   def handle_did_change(request)
     return unless enable_lint
 
-    params = request[:params]
-    id = request[:id]
-    uri = params[:textDocument][:uri]
+    content = request.document_content
+    diagnostics = linter.lint_file(request.document_uri_path, content)
 
-    file_path = URI.decode_uri_component(uri.sub("file://", ""))
-    content = extract_content_from_request(request)
-    diagnostics = linter.lint_file(file_path, content)
-
-    lsp_respond_to_diagnostics(id, uri, diagnostics)
+    lsp_respond_to_diagnostics(
+      request.id,
+      request.document_uri,
+      diagnostics
+    )
   end
 
-  def extract_content_from_request(request)
-    if request[:method] == "textDocument/didOpen"
-      request[:params][:textDocument][:text]
-    elsif request[:method] == "textDocument/didChange"
-      # For full document sync, the last change contains the full text
-      changes = request[:params][:contentChanges]
-      changes.last[:text] if changes && !changes.empty?
-    end
+  def handle_formatting(request)
+    content = request.document_content
+    formatted_content = linter.format_file(request.document_uri_path, content)
+
+    lsp_respond_to_formatting(request.id, formatted_content)
   end
 end

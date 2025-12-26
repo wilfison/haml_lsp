@@ -2,17 +2,22 @@
 
 # LSP-related utilities and helpers
 module HamlLsp::ServerResponder
-  def lsp_respond_to_initialize(id)
-    capabilities = HamlLsp::Interface::ServerCapabilities.new(
+  def lsp_server_capabilities
+    HamlLsp::Interface::ServerCapabilities.new(
       text_document_sync: HamlLsp::Interface::TextDocumentSyncOptions.new(
         open_close: true,
         change: HamlLsp::Constant::TextDocumentSyncKind::FULL,
         save: HamlLsp::Interface::SaveOptions.new(include_text: false)
+      ),
+      document_formatting_provider: HamlLsp::Interface::DocumentFormattingOptions.new(
+        work_done_progress: false
       )
     )
+  end
 
+  def lsp_respond_to_initialize(id)
     result = HamlLsp::Interface::InitializeResult.new(
-      capabilities: capabilities,
+      capabilities: lsp_server_capabilities,
       server_info: {
         name: "haml_lsp",
         version: HamlLsp::VERSION
@@ -28,10 +33,10 @@ module HamlLsp::ServerResponder
     send_message(message)
   end
 
-  def lasp_respond_to_shutdown(request)
+  def lsp_respond_to_shutdown(request)
     HamlLsp::Interface::ResponseMessage.new(
       jsonrpc: "2.0",
-      id: request[:id],
+      id: request.id,
       result: nil
     )
   end
@@ -49,6 +54,24 @@ module HamlLsp::ServerResponder
     )
 
     send_message(notification)
+  end
+
+  def lsp_respond_to_formatting(id, formatted_content)
+    message = HamlLsp::Interface::ResponseMessage.new(
+      jsonrpc: "2.0",
+      id: id,
+      result: [
+        HamlLsp::Interface::TextEdit.new(
+          range: HamlLsp::Interface::Range.new(
+            start: HamlLsp::Interface::Position.new(line: 0, character: 0),
+            end: HamlLsp::Interface::Position.new(line: Float::INFINITY, character: Float::INFINITY)
+          ),
+          new_text: formatted_content
+        )
+      ]
+    )
+
+    send_message(message)
   end
 
   def send_message(message)

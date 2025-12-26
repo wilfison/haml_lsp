@@ -21,6 +21,15 @@ class HamlLsp::Linter
     parse_lint_reports(report.lints)
   end
 
+  def format_file(file_path, file_content)
+    runner.format_document(
+      file_content,
+      file_path,
+      config_file: config_file,
+      reporter: reporter
+    )
+  end
+
   private
 
   def runner

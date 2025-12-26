@@ -17,7 +17,7 @@ class HamlLsp::Linter::Runner < HamlLint::Runner
     report(options)
   end
 
-  def run_autocorrect(template, file_path, options = {})
+  def format_document(template, file_path, options = {})
     run(template, file_path, options.merge(autocorrect: :safe, autocorrect_only: true))
 
     # calls private #unstrip_frontmatter from document
