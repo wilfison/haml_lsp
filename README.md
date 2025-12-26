@@ -6,7 +6,8 @@ A Ruby implementation of the [Language Server Protocol](https://microsoft.github
 
 - 🎯 **Syntax Validation**: Real-time diagnostics for HAML syntax errors
 - 🔍 **Code Completion**: Intelligent autocomplete for HAML tags and attributes
-- 📝 **Hover Information**: Documentation on hover for HAML elements
+- � **Rails Routes Completion**: Autocomplete for Rails route helpers when working in a Rails project
+- �📝 **Hover Information**: Documentation on hover for HAML elements
 - 🔗 **Go to Definition**: Navigate to definitions in your HAML templates
 - 🎨 **Formatting**: Code formatting support for HAML files
 
@@ -51,6 +52,25 @@ You can start the language server manually:
 ```bash
 haml_lsp --stdio
 ```
+
+### Rails Integration
+
+When working in a Rails project, HAML LSP automatically detects your project and provides intelligent autocomplete for Rails route helpers.
+
+**Automatic Detection**: The LSP server automatically detects Rails projects by checking for:
+
+- `config/application.rb`
+- `Gemfile`
+- `config/routes.rb`
+
+**Route Completion**: When detected as a Rails project, you'll get autocomplete suggestions for all available route helpers (e.g., `users_path`, `new_user_path`, etc.) as you type. The completions include:
+
+- Route helper names
+- HTTP methods (GET, POST, PUT, DELETE, etc.)
+- URL patterns
+- Full route information
+
+The route helpers are extracted by running `rake routes` (or `bundle exec rake routes` if using bundler) when the LSP server initializes.
 
 ## Development
 

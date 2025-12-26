@@ -29,7 +29,7 @@ module HamlLsp
     end
 
     def root_uri
-      params[:rootUri] if params
+      decode_uri(params[:rootUri]) if params
     end
 
     def document_uri
@@ -37,7 +37,7 @@ module HamlLsp
     end
 
     def document_uri_path
-      URI.decode_uri_component(document_uri.to_s.sub("file://", ""))
+      decode_uri(document_uri)
     end
 
     def document_content
@@ -57,6 +57,12 @@ module HamlLsp
       hash[:params] = @params.to_hash if @params
 
       hash
+    end
+
+    private
+
+    def decode_uri(uri)
+      URI.decode_uri_component(uri.sub("file://", ""))
     end
   end
 

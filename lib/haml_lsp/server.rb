@@ -13,6 +13,7 @@ module HamlLsp
       @use_bundle = use_bundle
       @enable_lint = enable_lint
       @is_rails_project = false
+      @rails_routes_cache = nil
 
       @reader = HamlLsp::MessageReader.new($stdin)
       @writer = HamlLsp::MessageWriter.new($stdout)
@@ -41,6 +42,8 @@ module HamlLsp
         handle_did_change(request)
       when "textDocument/formatting"
         handle_formatting(request)
+      when "textDocument/completion"
+        handle_completion(request)
       when "shutdown"
         lsp_respond_to_shutdown(request)
       when "exit"
@@ -73,6 +76,29 @@ module HamlLsp
       formatted_content = linter.format_file(request.document_uri_path, content)
 
       lsp_respond_to_formatting(request.id, formatted_content)
+    end
+
+    def handle_completion(request)
+      items = []
+
+      items = rails_routes if is_rails_project
+
+      lsp_respond_to_completion(request.id, items)
+    end
+
+    def linter
+      @linter ||= HamlLsp::Linter.new(root_uri: root_uri)
+    end
+
+    def rails_routes
+      @rails_routes ||= begin
+        raise "No root URI set" unless root_uri
+
+        HamlLsp::Rails::RoutesExtractor.extract_routes(root_uri)
+      rescue StandardError => e
+        warn("[haml-lsp] Error extracting Rails routes: #{e.message}")
+        []
+      end
     end
   end
 end

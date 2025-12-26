@@ -10,6 +10,7 @@ require_relative "haml_lsp/server"
 require_relative "haml_lsp/linter"
 require_relative "haml_lsp/lint/runner"
 require_relative "haml_lsp/rails/detector"
+require_relative "haml_lsp/rails/routes_extractor"
 
 module HamlLsp
   class Error < StandardError; end

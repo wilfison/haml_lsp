@@ -2,7 +2,7 @@
 
 module HamlLsp
   # LSP-related utilities and helpers
-  module ServerResponder
+  module ServerResponder # rubocop:disable Metrics/ModuleLength
     def lsp_server_capabilities
       HamlLsp::Interface::ServerCapabilities.new(
         text_document_sync: HamlLsp::Interface::TextDocumentSyncOptions.new(
@@ -12,6 +12,10 @@ module HamlLsp
         ),
         document_formatting_provider: HamlLsp::Interface::DocumentFormattingOptions.new(
           work_done_progress: false
+        ),
+        completion_provider: HamlLsp::Interface::CompletionOptions.new(
+          trigger_characters: ["_"],
+          resolve_provider: false
         )
       )
     end
@@ -70,6 +74,25 @@ module HamlLsp
             new_text: formatted_content
           )
         ]
+      )
+
+      send_message(message)
+    end
+
+    def lsp_respond_to_completion(id, items)
+      result = items.map do |item|
+        HamlLsp::Interface::CompletionItem.new(
+          label: item[:label],
+          kind: item[:kind],
+          detail: item[:detail],
+          documentation: item[:documentation]
+        )
+      end
+
+      message = HamlLsp::Interface::ResponseMessage.new(
+        jsonrpc: "2.0",
+        id: id,
+        result: result
       )
 
       send_message(message)
