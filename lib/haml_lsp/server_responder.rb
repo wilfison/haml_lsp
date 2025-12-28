@@ -2,7 +2,7 @@
 
 module HamlLsp
   # LSP-related utilities and helpers
-  module ServerResponder # rubocop:disable Metrics/ModuleLength
+  module ServerResponder
     def lsp_server_capabilities
       HamlLsp::Interface::ServerCapabilities.new(
         text_document_sync: HamlLsp::Interface::TextDocumentSyncOptions.new(
@@ -29,55 +29,30 @@ module HamlLsp
         }
       )
 
-      message = HamlLsp::Interface::ResponseMessage.new(
-        jsonrpc: "2.0",
-        id: id,
-        result: result
-      )
-
-      send_message(message)
+      HamlLsp::Message::Result.new(id: id, response: result)
     end
 
     def lsp_respond_to_shutdown(request)
-      HamlLsp::Interface::ResponseMessage.new(
-        jsonrpc: "2.0",
-        id: request.id,
-        result: nil
-      )
+      HamlLsp::Message::Result.new(id: request.id, response: nil)
     end
 
     def lsp_respond_to_diagnostics(uri, diagnostics)
-      params = HamlLsp::Interface::PublishDiagnosticsParams.new(
-        uri: uri,
-        diagnostics: diagnostics
-      )
-
-      notification = HamlLsp::Interface::NotificationMessage.new(
-        jsonrpc: "2.0",
-        method: "textDocument/publishDiagnostics",
-        params: params
-      )
-
-      send_message(notification)
+      HamlLsp::Message::Notification.publish_diagnostics(uri, diagnostics)
     end
 
     def lsp_respond_to_formatting(id, formatted_content)
-      message = HamlLsp::Interface::ResponseMessage.new(
-        jsonrpc: "2.0",
-        id: id,
-        result: [
-          HamlLsp::Interface::TextEdit.new(
-            range: full_content_range(formatted_content),
-            new_text: formatted_content
-          )
-        ]
-      )
+      response = [
+        HamlLsp::Interface::TextEdit.new(
+          range: full_content_range(formatted_content),
+          new_text: formatted_content
+        )
+      ]
 
-      send_message(message)
+      HamlLsp::Message::Result.new(id: id, response: response)
     end
 
     def lsp_respond_to_completion(id, items)
-      result = items.map do |item|
+      response = items.map do |item|
         HamlLsp::Interface::CompletionItem.new(
           label: item[:label],
           kind: item[:kind],
@@ -86,42 +61,23 @@ module HamlLsp
         )
       end
 
-      message = HamlLsp::Interface::ResponseMessage.new(
-        jsonrpc: "2.0",
-        id: id,
-        result: result
-      )
-
-      send_message(message)
+      HamlLsp::Message::Result.new(id: id, response: response)
     end
 
     def send_message(message)
-      @writer.write(message)
+      @writer.write(message.to_hash)
     end
 
-    def log_info(message)
-      return if ENV["HAML_LSP_LOG_LEVEL"] == "fatal"
-
-      warn("[haml-lsp] INFO: #{message}")
+    def send_log_message(message, type: HamlLsp::Constant::MessageType::LOG)
+      send_message(HamlLsp::Message::Notification.window_log_message(message, type: type))
     end
 
-    def log_error(message)
-      warn("[haml-lsp] ERROR: #{message}")
+    def send_log_message_error(message)
+      send_log_message(message, type: HamlLsp::Constant::MessageType::ERROR)
     end
 
-    def show_error_message(message)
-      params = HamlLsp::Interface::ShowMessageParams.new(
-        type: HamlLsp::Constant::MessageType::ERROR,
-        message: message
-      )
-
-      notification = HamlLsp::Interface::NotificationMessage.new(
-        jsonrpc: "2.0",
-        method: "window/showMessage",
-        params: params
-      )
-
-      send_message(notification)
+    def show_error_message(text)
+      send_message(HamlLsp::Message::Notification.window_show_message(text, type: HamlLsp::Constant::MessageType::ERROR))
     end
 
     # returns a Range that covers the full content

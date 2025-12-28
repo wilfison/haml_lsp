@@ -15,21 +15,24 @@ module HamlLsp
       @is_rails_project = false
       @rails_routes_cache = nil
 
-      @reader = HamlLsp::MessageReader.new($stdin)
-      @writer = HamlLsp::MessageWriter.new($stdout)
+      @reader = HamlLsp::Message::Reader.new($stdin)
+      @writer = HamlLsp::Message::Writer.new($stdout)
 
-      log_info("Starting HAML LSP (use_bundle: #{@use_bundle})")
+      send_log_message("Starting HAML LSP")
+      send_log_message("    Use bundle: #{@use_bundle}")
+      send_log_message("    Enable lint: #{@enable_lint}")
+      send_log_message("    Root URI: #{@root_uri || "not set"}")
     end
 
     def start
       @reader.each_message do |message|
         response_message = handle_request(message)
         send_message(response_message) if response_message
+      rescue StandardError => e
+        send_log_message_error("Fatal error (##{message.id}:#{message.method}): #{e.message}")
+        send_log_message_error(e.backtrace.join("\n"))
+        exit(1)
       end
-    rescue StandardError => e
-      log_error("Fatal error: #{e.message}")
-      log_error(e.backtrace.join("\n"))
-      exit(1)
     end
 
     private
@@ -56,9 +59,9 @@ module HamlLsp
         exit(0)
       end
     rescue StandardError => e
-      log_error("Error handling request #{request.method}: #{e.message}")
-      log_error(e.backtrace.join("\n"))
+      send_log_message_error("Error handling request #{request.method}: #{e.message}\n#{e.backtrace.join("\n")}")
       show_error_message("HAML LSP error: #{e.message}")
+      nil
     end
 
     def handle_initialize(request)
@@ -81,8 +84,9 @@ module HamlLsp
 
     def handle_formatting(request)
       content = store.get(request.document_uri)&.content || ""
-      formatted_content = linter.format_file(request.document_uri_path, content)
+      return if content.empty?
 
+      formatted_content = linter.format_file(request.document_uri_path, content)
       lsp_respond_to_formatting(request.id, formatted_content)
     end
 

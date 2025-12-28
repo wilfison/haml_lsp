@@ -23,10 +23,11 @@ module HamlLsp
     end
 
     def format_file(file_path, file_content)
+      sanitized_content = "#{file_content.strip.lines.map(&:chomp).join("\n")}\n"
+
       runner.format_document(
-        file_content,
+        sanitized_content,
         file_path,
-        config_file: config_file,
         reporter: reporter
       )
     end

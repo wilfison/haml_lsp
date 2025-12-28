@@ -5,6 +5,14 @@ require "language_server/protocol"
 
 require_relative "haml_lsp/version"
 require_relative "haml_lsp/utils"
+
+require_relative "haml_lsp/message/base"
+require_relative "haml_lsp/message/notification"
+require_relative "haml_lsp/message/request"
+require_relative "haml_lsp/message/reader"
+require_relative "haml_lsp/message/writer"
+require_relative "haml_lsp/message/result"
+
 require_relative "haml_lsp/server_responder"
 require_relative "haml_lsp/server"
 require_relative "haml_lsp/linter"
