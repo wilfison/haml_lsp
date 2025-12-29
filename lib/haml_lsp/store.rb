@@ -3,6 +3,8 @@
 module HamlLsp
   # In-memory store for documents
   class Store
+    attr_reader :documents
+
     def initialize
       @documents = {}
     end

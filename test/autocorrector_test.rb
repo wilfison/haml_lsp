@@ -9,19 +9,19 @@ class AutocorrectorTest < Minitest::Test
   end
 
   def test_autocorrectable_returns_true_for_rubocop_diagnostics
-    diagnostic = OpenStruct.new(source: "rubocop")
+    diagnostic = { source: "rubocop" }
 
     assert @autocorrector.autocorrectable?(diagnostic)
   end
 
   def test_autocorrectable_returns_false_for_haml_lint_diagnostics
-    diagnostic = OpenStruct.new(source: "haml_lint")
+    diagnostic = { source: "haml_lint" }
 
     refute @autocorrector.autocorrectable?(diagnostic)
   end
 
   def test_autocorrectable_returns_false_for_nil_source
-    diagnostic = OpenStruct.new(source: nil)
+    diagnostic = { source: nil }
 
     refute @autocorrector.autocorrectable?(diagnostic)
   end

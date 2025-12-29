@@ -1,10 +1,8 @@
 # frozen_string_literal: true
 
-require "ostruct"
-
 module HamlLsp
   # Server class to handle LSP requests
-  class Server
+  class Server # rubocop:disable Metrics/ClassLength
     include HamlLsp::ServerResponder
 
     attr_reader :root_uri, :use_bundle, :enable_lint, :is_rails_project
@@ -19,14 +17,14 @@ module HamlLsp
 
       @reader = HamlLsp::Message::Reader.new($stdin)
       @writer = HamlLsp::Message::Writer.new($stdout)
+    end
 
+    def start
       send_log_message("Starting HAML LSP")
       send_log_message("    Use bundle: #{@use_bundle}")
       send_log_message("    Enable lint: #{@enable_lint}")
       send_log_message("    Root URI: #{@root_uri || "not set"}")
-    end
 
-    def start
       @reader.each_message do |message|
         response_message = handle_request(message)
         send_message(response_message) if response_message
@@ -112,7 +110,7 @@ module HamlLsp
       lsp_respond_to_completion(request.id, items)
     end
 
-    def handle_code_action(request)
+    def handle_code_action(request) # rubocop:disable Metrics/AbcSize
       return lsp_respond_to_code_action(request.id, []) unless enable_lint
 
       document = store.get(request.document_uri)
@@ -139,7 +137,7 @@ module HamlLsp
       lsp_respond_to_code_action(request.id, actions)
     end
 
-    def handle_code_action_resolve(request)
+    def handle_code_action_resolve(request) # rubocop:disable Metrics/AbcSize,Metrics/MethodLength
       data = request.params[:data]
       uri = data[:uri]
 

@@ -35,7 +35,9 @@ module HamlLsp
         }
       )
 
-      HamlLsp::Message::Result.new(id: id, response: result)
+      response = HamlLsp::Message::Result.new(id: id, response: result)
+      send_message(response)
+      response
     end
 
     def lsp_respond_to_shutdown(request)
@@ -43,7 +45,9 @@ module HamlLsp
     end
 
     def lsp_respond_to_diagnostics(uri, diagnostics)
-      HamlLsp::Message::Notification.publish_diagnostics(uri, diagnostics)
+      notification = HamlLsp::Message::Notification.publish_diagnostics(uri, diagnostics)
+      send_message(notification)
+      notification
     end
 
     def lsp_respond_to_formatting(id, formatted_content)

@@ -24,9 +24,9 @@ module HamlLsp
 
       response = @server.last_response
 
-      assert_instance_of LanguageServer::Protocol::Interface::ResponseMessage, response
-      assert_equal 1, response.attributes[:id]
-      assert_instance_of LanguageServer::Protocol::Interface::InitializeResult, response.attributes[:result]
+      assert_instance_of HamlLsp::Message::Result, response
+      assert_equal 1, response.id
+      assert_instance_of LanguageServer::Protocol::Interface::InitializeResult, response.response
     end
 
     def test_lsp_respond_to_diagnostics
@@ -35,9 +35,9 @@ module HamlLsp
 
       notification = @server.last_response
 
-      assert_instance_of LanguageServer::Protocol::Interface::NotificationMessage, notification
-      assert_equal "textDocument/publishDiagnostics", notification.attributes[:method]
-      assert_instance_of LanguageServer::Protocol::Interface::PublishDiagnosticsParams, notification.attributes[:params]
+      assert_instance_of HamlLsp::Message::Notification, notification
+      assert_equal "textDocument/publishDiagnostics", notification.method
+      assert_instance_of LanguageServer::Protocol::Interface::PublishDiagnosticsParams, notification.params
     end
 
     def test_show_error_message
@@ -45,10 +45,10 @@ module HamlLsp
 
       notification = @server.last_response
 
-      assert_instance_of LanguageServer::Protocol::Interface::NotificationMessage, notification
-      assert_equal "window/showMessage", notification.attributes[:method]
+      assert_instance_of HamlLsp::Message::Notification, notification
+      assert_equal "window/showMessage", notification.method
 
-      params = notification.attributes[:params]
+      params = notification.params
 
       assert_instance_of LanguageServer::Protocol::Interface::ShowMessageParams, params
       assert_equal "Test error", params.attributes[:message]
