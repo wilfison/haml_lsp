@@ -1,4 +1,6 @@
-plugins: rubocop-minitest
+plugins:
+  - rubocop-minitest
+  - rubocop-rake
 
 AllCops:
   DisplayCopNames: true
