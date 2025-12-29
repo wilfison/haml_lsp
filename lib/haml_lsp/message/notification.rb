@@ -15,7 +15,10 @@ module HamlLsp
         def window_log_message(message, type: HamlLsp::Constant::MessageType::LOG)
           new(
             method: "window/logMessage",
-            params: HamlLsp::Interface::LogMessageParams.new(type: type, message: message)
+            params: HamlLsp::Interface::LogMessageParams.new(
+              type: type,
+              message: "[Haml LSP] #{message}"
+            )
           )
         end
 

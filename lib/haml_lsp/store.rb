@@ -12,7 +12,13 @@ module HamlLsp
     end
 
     def set(uri, content)
-      @documents[uri] = HamlLsp::Document.new(uri: uri, content: content)
+      if @documents[uri]
+        @documents[uri].update_content(content)
+      else
+        @documents[uri] = HamlLsp::Document.new(uri: uri, content: content)
+      end
+
+      @documents[uri]
     end
 
     def delete(uri)

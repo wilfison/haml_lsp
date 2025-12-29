@@ -6,6 +6,7 @@ module HamlLsp
     class Runner < HamlLint::Runner
       attr_accessor :document
 
+      # @override HamlLint::Runner#run
       def run(template, file_path, options = {})
         @config = load_applicable_config(options)
         @sources = extract_sources(template, file_path)
@@ -33,7 +34,7 @@ module HamlLsp
         [HamlLint::Source.new(io: StringIO.new(template), path: file_path)]
       end
 
-      # override to prevent file writing when autocorrecting
+      # @override to use in-memory document
       def autocorrect_document(document, linters)
         lint_arrays = []
 
@@ -42,6 +43,7 @@ module HamlLsp
           linter.run(document, autocorrect: @autocorrect)
         end
 
+        # override to prevent file writing on disk when autocorrecting
         # Instead, we will just set the document to the autocorrected version
         self.document = document
 

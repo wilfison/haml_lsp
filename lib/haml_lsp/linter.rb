@@ -22,16 +22,6 @@ module HamlLsp
       parse_lint_reports(report.lints, file_content)
     end
 
-    def format_file(file_path, file_content)
-      sanitized_content = "#{file_content.strip.lines.map(&:chomp).join("\n")}\n"
-
-      runner.format_document(
-        sanitized_content,
-        file_path,
-        reporter: reporter
-      )
-    end
-
     private
 
     def runner
@@ -67,7 +57,7 @@ module HamlLsp
           range: range,
           severity: map_severity(report.severity.to_s),
           message: report.message,
-          code: report.linter.name,
+          code: map_rule_name(report),
           source: report.linter.name == "RuboCop" ? "rubocop" : "haml_lint"
         )
       end
@@ -82,6 +72,13 @@ module HamlLsp
       else
         HamlLsp::Constant::DiagnosticSeverity::INFORMATION
       end
+    end
+
+    def map_rule_name(report)
+      return report.linter.name unless report.linter.name == "RuboCop"
+
+      matches = report.message.match(%r{^([\w/]*):\s(.*)})
+      matches ? matches[1] : report.linter.name
     end
 
     def report_range_for_line(content, line_number)

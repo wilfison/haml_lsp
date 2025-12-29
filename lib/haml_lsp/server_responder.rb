@@ -16,6 +16,12 @@ module HamlLsp
         completion_provider: HamlLsp::Interface::CompletionOptions.new(
           trigger_characters: ["_"],
           resolve_provider: false
+        ),
+        code_action_provider: HamlLsp::Interface::CodeActionOptions.new(
+          code_action_kinds: [
+            HamlLsp::Constant::CodeActionKind::QUICK_FIX
+          ],
+          resolve_provider: true
         )
       )
     end
@@ -62,6 +68,23 @@ module HamlLsp
       end
 
       HamlLsp::Message::Result.new(id: id, response: response)
+    end
+
+    def lsp_respond_to_code_action(id, actions)
+      response = actions.map do |action|
+        HamlLsp::Interface::CodeAction.new(
+          title: action[:title],
+          kind: action[:kind],
+          diagnostics: action[:diagnostics],
+          data: action[:data]
+        )
+      end
+
+      HamlLsp::Message::Result.new(id: id, response: response)
+    end
+
+    def lsp_respond_to_code_action_resolve(id, action)
+      HamlLsp::Message::Result.new(id: id, response: action)
     end
 
     def send_message(message)

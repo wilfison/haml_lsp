@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "ostruct"
+
 module HamlLsp
   # Server class to handle LSP requests
   class Server
@@ -41,7 +43,7 @@ module HamlLsp
       @store ||= HamlLsp::Store.new
     end
 
-    def handle_request(request) # rubocop:disable Metrics/CyclomaticComplexity,Metrics/AbcSize
+    def handle_request(request) # rubocop:disable Metrics/CyclomaticComplexity,Metrics/AbcSize,Metrics/MethodLength
       case request.method
       when "initialize"
         handle_initialize(request)
@@ -53,6 +55,10 @@ module HamlLsp
         handle_formatting(request)
       when "textDocument/completion"
         handle_completion(request)
+      when "textDocument/codeAction"
+        handle_code_action(request)
+      when "codeAction/resolve"
+        handle_code_action_resolve(request)
       when "shutdown"
         lsp_respond_to_shutdown(request)
       when "exit"
@@ -72,12 +78,15 @@ module HamlLsp
     end
 
     def handle_did_change(request)
-      store.set(request.document_uri, request.document_content)
+      document = store.set(request.document_uri, request.document_content)
 
       return unless enable_lint
 
       content = request.document_content
       diagnostics = linter.lint_file(request.document_uri_path, content)
+
+      # Save diagnostics in the document for code actions
+      document&.update_diagnostics(diagnostics)
 
       lsp_respond_to_diagnostics(request.document_uri, diagnostics)
     end
@@ -86,7 +95,7 @@ module HamlLsp
       content = store.get(request.document_uri)&.content || ""
       return if content.empty?
 
-      formatted_content = linter.format_file(request.document_uri_path, content)
+      formatted_content = autocorrector.autocorrect(request.document_uri_path, content)
       lsp_respond_to_formatting(request.id, formatted_content)
     end
 
@@ -103,8 +112,79 @@ module HamlLsp
       lsp_respond_to_completion(request.id, items)
     end
 
+    def handle_code_action(request)
+      return lsp_respond_to_code_action(request.id, []) unless enable_lint
+
+      document = store.get(request.document_uri)
+      return lsp_respond_to_code_action(request.id, []) unless document
+
+      # Get diagnostics from the context
+      diagnostics = request.params.dig(:context, :diagnostics) || []
+
+      # Convert raw diagnostics to our format and filter autocorrectable ones
+      actions = []
+      autocorrectable_diagnostics = autocorrector.autocorrectable_diagnostics(diagnostics)
+      if autocorrectable_diagnostics.any?
+        actions << {
+          title: "Fix All Auto-correctable Issues",
+          kind: HamlLsp::Constant::CodeActionKind::QUICK_FIX,
+          diagnostics: autocorrectable_diagnostics,
+          data: {
+            uri: request.document_uri
+          }
+        }
+      end
+
+      send_log_message("Providing #{actions.size} code actions for #{request.document_uri}")
+      lsp_respond_to_code_action(request.id, actions)
+    end
+
+    def handle_code_action_resolve(request)
+      data = request.params[:data]
+      uri = data[:uri]
+
+      document = store.get(uri)
+      return lsp_respond_to_code_action_resolve(request.id, request.params) unless document
+
+      # Get corrected content
+      corrected_content = autocorrector.autocorrect(
+        URI.parse(uri).path,
+        document.content
+      )
+
+      # Create workspace edit
+      edit = HamlLsp::Interface::WorkspaceEdit.new(
+        changes: {
+          uri => [
+            HamlLsp::Interface::TextEdit.new(
+              range: full_content_range(document.content),
+              new_text: corrected_content
+            )
+          ]
+        }
+      )
+
+      # Add edit to code action
+      action = HamlLsp::Interface::CodeAction.new(
+        title: request.params[:title],
+        kind: request.params[:kind],
+        diagnostics: request.params[:diagnostics],
+        edit: edit
+      )
+
+      send_log_message("Autocorrected code action for #{uri}")
+      lsp_respond_to_code_action_resolve(request.id, action)
+    end
+
     def linter
       @linter ||= HamlLsp::Linter.new(root_uri: root_uri)
+    end
+
+    def autocorrector
+      @autocorrector ||= HamlLsp::Autocorrector.new(
+        root_uri: root_uri,
+        config_file: linter.config_file
+      )
     end
 
     def rails_routes
