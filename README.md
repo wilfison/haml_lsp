@@ -7,12 +7,11 @@ A Ruby implementation of the [Language Server Protocol](https://microsoft.github
 
 ## Features
 
-- 🎯 **Syntax Validation**: Real-time diagnostics for HAML syntax errors
+- 🎯 **Syntax Validation**: Real-time diagnostics for HAML syntax errors (when `--enable-lint` flag is used)
 - 🔍 **Code Completion**: Intelligent autocomplete for HAML tags and attributes
-- � **Rails Routes Completion**: Autocomplete for Rails route helpers when working in a Rails project
-- �📝 **Hover Information**: Documentation on hover for HAML elements
-- 🔗 **Go to Definition**: Navigate to definitions in your HAML templates
+- 🚀 **Rails Routes Completion**: Autocomplete for Rails route helpers when working in a Rails project
 - 🎨 **Formatting**: Code formatting support for HAML files
+- 🔧 **Code Actions**: Quick fixes for auto-correctable linting issues
 
 ## Installation
 
@@ -36,25 +35,25 @@ gem install haml_lsp
 
 ## Usage
 
-### With Visual Studio Code
-
-Install a LSP client extension for VS Code and configure it to use `haml_lsp`.
-
-### With Neovim
-
-Configure your LSP client to use the HAML LSP server:
-
-```lua
-require'lspconfig'.haml_lsp.setup{}
-```
-
-### Manual Usage
-
-You can start the language server manually:
+The HAML LSP server can be started manually and integrated with any LSP-compatible editor:
 
 ```bash
 haml_lsp --stdio
 ```
+
+**Available flags:**
+
+- `--use-bundle` – Run under Bundler context (useful in monorepos)
+- `--enable-lint` – Enable real-time linting diagnostics
+- `--root-uri=file:///path/to/workspace` – Set workspace root explicitly
+
+**Example with all flags:**
+
+```bash
+haml_lsp --stdio --enable-lint --use-bundle --root-uri=file:///home/user/my-rails-app
+```
+
+> **Note:** Editor-specific extensions and plugins are currently in development. For now, you'll need to configure your editor's LSP client manually to use the `haml_lsp` command.
 
 ### HAML Autocomplete
 
