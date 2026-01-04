@@ -19,13 +19,42 @@ Style/FrozenStringLiteralComment:
 
 Metrics/MethodLength:
   Enabled: true
-  Max: 20
+  Max: 30
+  Exclude:
+    - "test/**/*"
 
 Style/StringLiterals:
+  Enabled: true
   EnforcedStyle: double_quotes
 
 Style/StringLiteralsInInterpolation:
+  Enabled: true
   EnforcedStyle: double_quotes
 
 Minitest/MultipleAssertions:
   Enabled: false
+
+Metrics/ClassLength:
+  Enabled: true
+  Exclude:
+    - "test/**/*"
+
+Metrics/AbcSize:
+  Enabled: true
+  Max: 30
+  Exclude:
+    - "test/**/*"
+
+Metrics/CyclomaticComplexity:
+  Enabled: true
+  Max: 10
+
+Layout/HeredocIndentation:
+  Enabled: true
+  Exclude:
+    - "test/**/*"
+
+Layout/TrailingWhitespace:
+  Enabled: true
+  Exclude:
+    - "test/**/*"

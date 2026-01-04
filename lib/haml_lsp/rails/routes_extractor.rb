@@ -4,52 +4,76 @@ module HamlLsp
   module Rails
     # Module to extract Rails routes for autocompletion
     module RoutesExtractor
+      LINE_REGEXP = /(?<label>Prefix|Verb|URI|Controller#Action|Source Location)[\s|]+(?<value>\S+)?\n/
+
       class << self
         def extract_routes(root_path)
           return [] unless root_path
 
           routes_output = fetch_routes_output(root_path)
-          parse_routes(routes_output)
+          parse_routes(routes_output, root_path)
         rescue StandardError => e
-          warn("[haml-lsp] Error extracting routes: #{e.message}")
-          []
+          raise "Error extracting routes: #{e.message}"
         end
-
-        private
 
         def fetch_routes_output(root_path)
-          cmd = "bundle exec rails routes"
+          cmd = "./bin/rails routes --expanded"
 
           Dir.chdir(root_path) do
-            `#{cmd} 2>/dev/null`
+            `#{cmd} # 2>/dev/null`
           end
         end
 
-        def parse_routes(output)
-          routes = []
-          output.each_line do |line|
-            # Parse lines like: "users_path GET /users(.:format) users#index"
-            # or "new_user_path GET /users/new(.:format) users#new"
-            next unless line =~ /^\s*(\w+_path|\w+_url)\s/
+        # Parse lines like:
+        #     --[ Route 1 ]-----------------------------------------------------------
+        #     Prefix            | rails_health_check
+        #     Verb              | GET
+        #     URI               | /up(.:format)
+        #     Controller#Action | rails/health#show
+        #     Source Location   | /my_app/config/routes.rb:4
+        #
+        # @return [Hash{String => Hash}] Parsed routes with prefix as key
+        def parse_routes(output, root_path)
+          routes = {}
+          last_prefix = nil
+          output_blocks = output.gsub(Regexp.new("^#{root_path}/"), ".").split(/-+\[[\s\w]+\]-+\s*/)
 
-            route_name = ::Regexp.last_match(1)
-            routes << {
-              label: route_name,
-              kind: 6, # Method completion kind
-              detail: extract_route_details(line),
-              documentation: line.strip
-            }
+          output_blocks.each do |route_block|
+            next if route_block.strip.empty?
+
+            route = extract_route(route_block, last_prefix)
+            next if route.nil?
+
+            if routes[route[:prefix]]
+              routes[route[:prefix]][:verbs] << route[:verbs].first
+            else
+              routes[route[:prefix]] = route
+            end
+
+            last_prefix = route[:prefix]
           end
-          routes.uniq { |r| r[:label] }
+
+          routes
         end
 
-        def extract_route_details(line)
-          # Extract HTTP method and path
-          if line =~ %r{\s+(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s+(/\S+)}
-            "#{::Regexp.last_match(1)} #{::Regexp.last_match(2)}"
-          else
-            "Rails Route"
-          end
+        def extract_route(route_block, last_prefix)
+          matches = route_block.scan(LINE_REGEXP).to_h
+          return nil if matches.empty?
+
+          {
+            prefix: matches["Prefix"] || last_prefix,
+            verbs: [matches["Verb"]],
+            uri: matches["URI"],
+            params: extract_params(matches["URI"]),
+            controller: matches["Controller#Action"].to_s.split("#").first,
+            source_location: matches["Source Location"]
+          }
+        end
+
+        def extract_params(path)
+          # Extract params like :id, :user_id from path, but exclude :format
+          params = path.scan(/:(\w+)/).flatten
+          params.reject { |param| param == "format" }
         end
       end
     end

@@ -5,18 +5,16 @@ module HamlLsp
   class Server # rubocop:disable Metrics/ClassLength
     include HamlLsp::ServerResponder
 
-    attr_reader :root_uri, :use_bundle, :enable_lint, :is_rails_project
+    attr_reader :root_uri, :use_bundle, :enable_lint, :rails_routes_cache
 
     def initialize(use_bundle: false, enable_lint: false, root_uri: nil)
       @initialized = false
       @root_uri = URI.decode_uri_component(root_uri.sub("file://", "")) if root_uri
       @use_bundle = use_bundle
       @enable_lint = enable_lint
-      @is_rails_project = false
       @rails_routes_cache = nil
 
-      @reader = HamlLsp::Message::Reader.new($stdin)
-      @writer = HamlLsp::Message::Writer.new($stdout)
+      load_rails_routes if rails_project?
     end
 
     def start
@@ -25,9 +23,11 @@ module HamlLsp
       send_log_message("    Enable lint: #{@enable_lint}")
       send_log_message("    Root URI: #{@root_uri || "not set"}")
 
-      @reader.each_message do |message|
+      HamlLsp.reader.each_message do |message|
         response_message = handle_request(message)
-        send_message(response_message) if response_message
+        next unless response_message
+
+        send_message(response_message)
       rescue StandardError => e
         send_log_message_error("Fatal error (##{message.id}:#{message.method}): #{e.message}")
         send_log_message_error(e.backtrace.join("\n"))
@@ -41,7 +41,11 @@ module HamlLsp
       @store ||= HamlLsp::Store.new
     end
 
-    def handle_request(request) # rubocop:disable Metrics/CyclomaticComplexity,Metrics/AbcSize,Metrics/MethodLength
+    def rails_project?
+      @rails_project ||= HamlLsp::Rails::Detector.rails_project?(root_uri)
+    end
+
+    def handle_request(request) # rubocop:disable Metrics/CyclomaticComplexity
       case request.method
       when "initialize"
         handle_initialize(request)
@@ -70,7 +74,6 @@ module HamlLsp
 
     def handle_initialize(request)
       @root_uri = request.root_uri
-      @is_rails_project = HamlLsp::Rails::Detector.rails_project?(root_uri) if root_uri
 
       lsp_respond_to_initialize(request.id)
     end
@@ -98,19 +101,12 @@ module HamlLsp
     end
 
     def handle_completion(request)
-      items = []
-
-      # Add HAML tags and attributes completions
-      items += HamlLsp::Haml::TagsProvider.completion_items
-      items += HamlLsp::Haml::AttributesProvider.completion_items
-
-      # Add Rails routes if in a Rails project
-      items += rails_routes if is_rails_project
+      items = completion_provider.handle(request, rails_routes_cache)
 
       lsp_respond_to_completion(request.id, items)
     end
 
-    def handle_code_action(request) # rubocop:disable Metrics/AbcSize
+    def handle_code_action(request)
       return lsp_respond_to_code_action(request.id, []) unless enable_lint
 
       document = store.get(request.document_uri)
@@ -133,11 +129,11 @@ module HamlLsp
         }
       end
 
-      send_log_message("Providing #{actions.size} code actions for #{request.document_uri}")
+      send_log_message("Providing #{actions.size} code actions ##{request.id}")
       lsp_respond_to_code_action(request.id, actions)
     end
 
-    def handle_code_action_resolve(request) # rubocop:disable Metrics/AbcSize,Metrics/MethodLength
+    def handle_code_action_resolve(request)
       data = request.params[:data]
       uri = data[:uri]
 
@@ -185,15 +181,18 @@ module HamlLsp
       )
     end
 
-    def rails_routes
-      @rails_routes ||= begin
-        raise "No root URI set" unless root_uri
+    def completion_provider
+      @completion_provider ||= HamlLsp::Completion::Provider.new(store: store, rails_project: rails_project?)
+    end
 
-        HamlLsp::Rails::RoutesExtractor.extract_routes(root_uri)
-      rescue StandardError => e
-        warn("[haml-lsp] Error extracting Rails routes: #{e.message}")
-        []
-      end
+    def load_rails_routes
+      raise "No root URI set" unless root_uri
+
+      @rails_routes_cache = HamlLsp::Rails::RoutesExtractor.extract_routes(root_uri)
+      HamlLsp.log("Loaded #{@rails_routes_cache.keys.size} Rails routes for autocompletion")
+    rescue StandardError => e
+      warn("[haml-lsp] Error extracting Rails routes: #{e.message}")
+      []
     end
   end
 end

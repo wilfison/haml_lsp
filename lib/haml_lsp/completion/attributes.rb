@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
 module HamlLsp
-  module Haml
+  module Completion
     # Module to provide HAML attribute completions
-    module AttributesProvider
+    module Attributes
+      ATTRIBUTE_REGEXP = /%[\w:\-_.#]+([{(])/
+
       # Common HTML attributes
       GLOBAL_ATTRIBUTES = %w[
         id class style title
@@ -33,67 +35,57 @@ module HamlLsp
         "th" => %w[colspan rowspan scope headers]
       }.freeze
 
-      # HAML-specific attributes
-      HAML_ATTRIBUTES = [
-        { label: "{", detail: "Ruby hash attributes",
-          documentation: 'HAML hash attributes syntax: %tag{attr: "value"}' },
-        { label: "(", detail: "HTML-style attributes",
-          documentation: 'HAML HTML-style attributes: %tag(attr="value")' },
-        { label: ".", detail: "Class shortcut", documentation: "HAML class syntax: %tag.classname" },
-        { label: "#", detail: "ID shortcut", documentation: "HAML ID syntax: %tag#idname" }
-      ].freeze
-
       class << self
-        def completion_items(context = {})
+        def completion_items(line)
+          open_attribute_match = line.match(ATTRIBUTE_REGEXP)
+          return [] unless open_attribute_match
+
           items = []
+          open_char = open_attribute_match[1]
+          set_char = open_char == "{" ? ": " : "="
 
           # Add global attributes
-          items += global_attribute_completions
-
-          # Add HAML-specific syntax
-          items += haml_attribute_completions
+          items += global_attribute_completions(set_char)
 
           # Add tag-specific attributes if context available
-          items += tag_specific_completions(context[:tag]) if context[:tag]
+          items += tag_specific_completions(line, set_char)
 
           items
         end
 
-        private
+        def extract_current_tag(line)
+          return ::Regexp.last_match(1) if line =~ /%([\w:-]+)/
 
-        def global_attribute_completions
+          nil
+        end
+
+        def global_attribute_completions(set_char)
+          wrapper = set_char == ":" ? "\"" : ""
+
           GLOBAL_ATTRIBUTES.map do |attr|
             {
               label: attr,
-              kind: 10, # Property
+              kind: Constant::CompletionItemKind::PROPERTY,
               detail: "HTML attribute",
               documentation: "Global HTML attribute: #{attr}",
-              insert_text: attr.end_with?("-") ? attr : "#{attr}="
+              insert_text: attr.end_with?("-") ? "#{wrapper}#{attr}$1#{wrapper}#{set_char}$0" : "#{attr}#{set_char}",
+              insert_text_format: attr.end_with?("-") ? Constant::InsertTextFormat::SNIPPET : Constant::InsertTextFormat::PLAIN_TEXT
             }
           end
         end
 
-        def haml_attribute_completions
-          HAML_ATTRIBUTES.map do |attr|
-            {
-              label: attr[:label],
-              kind: 15, # Snippet
-              detail: attr[:detail],
-              documentation: attr[:documentation],
-              insert_text: attr[:label]
-            }
-          end
-        end
+        def tag_specific_completions(line, set_char)
+          tag = extract_current_tag(line)
+          return [] unless tag && TAG_SPECIFIC_ATTRIBUTES.key?(tag)
 
-        def tag_specific_completions(tag)
           attributes = TAG_SPECIFIC_ATTRIBUTES[tag] || []
           attributes.map do |attr|
             {
               label: attr,
-              kind: 10, # Property
+              kind: Constant::CompletionItemKind::PROPERTY,
               detail: "#{tag} attribute",
-              documentation: "Specific attribute for <#{tag}> element",
-              insert_text: "#{attr}="
+              documentation: "Attribute for <#{tag}> element",
+              insert_text: "#{attr}#{set_char}"
             }
           end
         end

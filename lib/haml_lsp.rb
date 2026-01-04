@@ -22,9 +22,29 @@ require_relative "haml_lsp/store"
 require_relative "haml_lsp/document"
 require_relative "haml_lsp/rails/detector"
 require_relative "haml_lsp/rails/routes_extractor"
-require_relative "haml_lsp/haml/tags_provider"
-require_relative "haml_lsp/haml/attributes_provider"
 
+require_relative "haml_lsp/completion/tags"
+require_relative "haml_lsp/completion/attributes"
+require_relative "haml_lsp/completion/routes"
+require_relative "haml_lsp/completion/provider"
+
+# The main module for HamlLSP
 module HamlLsp
   class Error < StandardError; end
+
+  def self.reader
+    @reader ||= HamlLsp::Message::Reader.new($stdin)
+  end
+
+  def self.writer
+    @writer ||= HamlLsp::Message::Writer.new($stdout)
+  end
+
+  def self.log(message, type: HamlLsp::Constant::MessageType::LOG)
+    writer.write(HamlLsp::Message::Notification.window_log_message(message, type: type).to_hash)
+  end
+
+  def self.log_error(message)
+    log(message, type: HamlLsp::Constant::MessageType::ERROR)
+  end
 end

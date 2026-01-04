@@ -63,12 +63,7 @@ module HamlLsp
 
     def lsp_respond_to_completion(id, items)
       response = items.map do |item|
-        HamlLsp::Interface::CompletionItem.new(
-          label: item[:label],
-          kind: item[:kind],
-          detail: item[:detail],
-          documentation: item[:documentation]
-        )
+        HamlLsp::Interface::CompletionItem.new(**item)
       end
 
       HamlLsp::Message::Result.new(id: id, response: response)
@@ -92,7 +87,7 @@ module HamlLsp
     end
 
     def send_message(message)
-      @writer.write(message.to_hash)
+      HamlLsp.writer.write(message.to_hash)
     end
 
     def send_log_message(message, type: HamlLsp::Constant::MessageType::LOG)

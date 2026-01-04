@@ -84,14 +84,15 @@ module HamlLsp
     def report_range_for_line(content, line_number)
       line = content.to_s.lines[line_number].to_s
       sanitized_line = line.chomp
+      report_line_number = line_number.negative? ? 0 : line_number
 
       HamlLsp::Interface::Range.new(
         start: HamlLsp::Interface::Position.new(
-          line: line_number,
+          line: report_line_number,
           character: first_non_empty_line_character(sanitized_line)
         ),
         end: HamlLsp::Interface::Position.new(
-          line: line_number,
+          line: report_line_number,
           character: sanitized_line.empty? ? line.length : sanitized_line.length
         )
       )
