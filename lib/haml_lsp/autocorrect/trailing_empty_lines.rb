@@ -5,7 +5,7 @@ module HamlLsp
     # Handles autocorrection
     # HAML documents should not contain empty lines at the end of the file.
     module TrailingEmptyLines
-      def self.autocorrect(content, _config = {}, _config_linters = {})
+      def self.autocorrect(content, config: {}, config_linters: {})
         content.rstrip
       end
     end

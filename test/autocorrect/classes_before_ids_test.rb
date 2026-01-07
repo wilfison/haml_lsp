@@ -11,7 +11,7 @@ module Autocorrect
     def test_autocorrects_class_before_classes
       content = "#main.container"
       expected_corrected_content = ".container#main"
-      corrected_content = @autocorrector.autocorrect(content, { "EnforcedStyle" => "class" })
+      corrected_content = @autocorrector.autocorrect(content, config: { "EnforcedStyle" => "class" })
 
       assert_equal(expected_corrected_content, corrected_content)
     end
@@ -19,7 +19,7 @@ module Autocorrect
     def test_autocorrects_ids_before_classes
       content = ".container#main"
       expected_corrected_content = "#main.container"
-      corrected_content = @autocorrector.autocorrect(content, { "EnforcedStyle" => "id" })
+      corrected_content = @autocorrector.autocorrect(content, config: { "EnforcedStyle" => "id" })
 
       assert_equal(expected_corrected_content, corrected_content)
     end
@@ -27,7 +27,7 @@ module Autocorrect
     def test_does_not_modify_correct_order
       content = ".container#main"
       expected_corrected_content = ".container#main"
-      corrected_content = @autocorrector.autocorrect(content, { "EnforcedStyle" => "class" })
+      corrected_content = @autocorrector.autocorrect(content, config: { "EnforcedStyle" => "class" })
 
       assert_equal(expected_corrected_content, corrected_content)
     end
@@ -35,7 +35,7 @@ module Autocorrect
     def test_does_not_modify_lines_without_ids_or_classes
       content = "%div"
       expected_corrected_content = "%div"
-      corrected_content = @autocorrector.autocorrect(content, { "EnforcedStyle" => "class" })
+      corrected_content = @autocorrector.autocorrect(content, config: { "EnforcedStyle" => "class" })
 
       assert_equal(expected_corrected_content, corrected_content)
     end

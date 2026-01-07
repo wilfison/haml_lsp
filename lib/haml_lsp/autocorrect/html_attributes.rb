@@ -8,7 +8,7 @@ module HamlLsp
       REGEXP_ATTRS = /(\w[\w-]*)=(?:("[^"]*")|('[^']*')|([^"\s]*))/
       REGEX_VALUE = /"([^"]*)"|'([^']*)'/
 
-      def self.autocorrect(line, _config = {}, _config_linters = {})
+      def self.autocorrect(line, config: {}, config_linters: {})
         match = line.match(REGEXP)
         return line unless line.match(REGEXP)
 
@@ -16,11 +16,12 @@ module HamlLsp
         return line if attributes.empty?
 
         attributes_string = attributes.map { |attr| "#{attr[0]}: #{attr[1]}" }.join(", ")
+        space = space_inside_hash_attributes(config_linters)
 
         if attributes_string.empty?
           line
         else
-          line.sub("(#{match[1]})", "{#{attributes_string}}")
+          line.sub("(#{match[1]})", "{#{space}#{attributes_string}#{space}}")
         end
       end
 
@@ -39,6 +40,14 @@ module HamlLsp
       def self.fix_quotes(value)
         match = value.match(REGEX_VALUE)
         match ? "'#{match[1] || match[2]}'" : value
+      end
+
+      def self.space_inside_hash_attributes(config_linters)
+        linter_config = config_linters["SpaceInsideHashAttributes"] || {}
+        return "" unless linter_config["enabled"]
+
+        style = linter_config["style"] || "no_space"
+        style == "space" ? " " : ""
       end
     end
   end

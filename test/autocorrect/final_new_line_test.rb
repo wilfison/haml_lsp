@@ -12,7 +12,7 @@ module Autocorrect
       content = ".container#main\n  .header#top\n    %h1 Title"
       expected_corrected_content = ".container#main\n  .header#top\n    %h1 Title\n"
 
-      corrected_content = @autocorrector.autocorrect(content, { "present" => true })
+      corrected_content = @autocorrector.autocorrect(content, config: { "present" => true })
 
       assert_equal(expected_corrected_content, corrected_content)
     end
@@ -21,7 +21,7 @@ module Autocorrect
       content = ".container#main\n  .header#top\n    %h1 Title\n"
       expected_corrected_content = ".container#main\n  .header#top\n    %h1 Title\n"
 
-      corrected_content = @autocorrector.autocorrect(content, { "present" => true })
+      corrected_content = @autocorrector.autocorrect(content, config: { "present" => true })
 
       assert_equal(expected_corrected_content, corrected_content)
     end
@@ -30,7 +30,7 @@ module Autocorrect
       content = ".container#main\n  .header#top\n    %h1 Title\n"
       expected_corrected_content = ".container#main\n  .header#top\n    %h1 Title"
 
-      corrected_content = @autocorrector.autocorrect(content, { "present" => false })
+      corrected_content = @autocorrector.autocorrect(content, config: { "present" => false })
 
       assert_equal(expected_corrected_content, corrected_content)
     end

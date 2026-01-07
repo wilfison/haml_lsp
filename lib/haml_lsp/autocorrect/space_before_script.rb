@@ -7,7 +7,7 @@ module HamlLsp
     module SpaceBeforeScript
       REGEXP = /^\s*([-=](?!#))(\s{0}|\s{2,})(\S+)/
 
-      def self.autocorrect(line, _config = {}, _config_linters = {})
+      def self.autocorrect(line, config: {}, config_linters: {})
         if (match = line.match(REGEXP))
           line.sub("#{match[1]}#{match[2]}#{match[3]}", "#{match[1]} #{match[3]}")
         else

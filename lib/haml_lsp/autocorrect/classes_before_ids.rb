@@ -7,7 +7,7 @@ module HamlLsp
       REGEXP = /^(?:\s*)(#[\w-]+)(\.[\w-]+)|^(?:\s*)(\.[\w-]+)(#[\w-]+)/
 
       # Whether classes or ID attributes should be listed first in tags.
-      def self.autocorrect(line, config = {}, _config_linters = {})
+      def self.autocorrect(line, config: {}, config_linters: {})
         enforced_style = config.fetch("EnforcedStyle", "class")
 
         match = line.match(REGEXP)

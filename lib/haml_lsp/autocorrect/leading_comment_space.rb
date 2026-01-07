@@ -7,7 +7,7 @@ module HamlLsp
       REGEXP = /^(\s*)(-#)\s*(.*)$/
 
       # Separate comments from the leading '#' by a space.
-      def self.autocorrect(line, _config = {}, _config_linters = {})
+      def self.autocorrect(line, config: {}, config_linters: {})
         line.sub(REGEXP, '\1-# \3')
       end
     end

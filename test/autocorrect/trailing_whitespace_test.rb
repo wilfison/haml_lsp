@@ -11,7 +11,7 @@ module Autocorrect
     def test_autocorrects_trailing_empty_lines
       content = "%div         "
       expected_content = "%div"
-      corrected_content = @autocorrector.autocorrect(content, {})
+      corrected_content = @autocorrector.autocorrect(content, config: {})
 
       assert_equal(expected_content, corrected_content)
     end
@@ -19,7 +19,7 @@ module Autocorrect
     def test_does_not_modify_content_without_trailing_whitespace
       content = "%div"
       expected_content = content.dup
-      corrected_content = @autocorrector.autocorrect(content, {})
+      corrected_content = @autocorrector.autocorrect(content, config: {})
 
       assert_equal(expected_content, corrected_content)
     end

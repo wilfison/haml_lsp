@@ -16,7 +16,6 @@ module HamlLsp
 
       AUTOCORRECTABLE_LINTS_FULL_CONTENT = {
         "TrailingEmptyLines" => Autocorrect::TrailingEmptyLines,
-        "HtmlAttributes" => Autocorrect::HtmlAttributes,
         "FinalNewline" => Autocorrect::FinalNewline # needs to be last
       }.freeze
 
@@ -44,7 +43,7 @@ module HamlLsp
           next unless enabled_linter?(lint_name)
 
           config = config_for_linter(lint_name)
-          new_content = autocorrector.autocorrect(new_content, config, linter.config_linters)
+          new_content = autocorrector.autocorrect(new_content, config: config, config_linters: linter.config_linters)
         end
 
         Autocorrect::Rubocop.autocorrect(linter, file_path, new_content)
@@ -89,7 +88,7 @@ module HamlLsp
             next unless enabled_linter?(lint_name)
 
             config = config_for_linter(lint_name)
-            line = autocorrector.autocorrect(line, config)
+            line = autocorrector.autocorrect(line, config: config, config_linters: linter.config_linters)
           end
 
           content_lines[index] = line
