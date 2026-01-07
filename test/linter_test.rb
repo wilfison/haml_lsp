@@ -36,7 +36,7 @@ module HamlLsp
       assert_nil @linter.config_file
     end
 
-    def test_diagnostic_hash_structure # rubocop:disable Metrics/AbcSize
+    def test_diagnostic_hash_structure
       file_path = "/tmp/test.haml"
       # HAML com possíveis problemas de lint
       file_content = "%h1 Hello\n    %p This is bad indentation\n"

@@ -57,6 +57,8 @@ module HamlLsp
         handle_formatting(request)
       when "textDocument/completion"
         handle_completion(request)
+      when "textDocument/definition"
+        handle_definition(request)
       when "textDocument/codeAction"
         handle_code_action(request)
       when "codeAction/resolve"
@@ -104,6 +106,27 @@ module HamlLsp
       items = completion_provider.handle(request, rails_routes_cache)
 
       lsp_respond_to_completion(request.id, items)
+    end
+
+    def handle_definition(request)
+      return lsp_respond_to_definition(request.id, []) unless rails_project?
+      return lsp_respond_to_definition(request.id, []) if rails_routes_cache.nil? || rails_routes_cache.empty?
+
+      document = store.get(request.document_uri)
+      return lsp_respond_to_definition(request.id, []) unless document
+
+      # Get the word at the current position
+      word = HamlLsp::Utils.word_at_position(
+        document.content,
+        request.params.dig(:position, :line),
+        request.params.dig(:position, :character)
+      )
+
+      # Find definition using the routes provider
+      locations = HamlLsp::Definition::Routes.find_definition(word, rails_routes_cache, root_uri)
+
+      send_log_message("Providing #{locations.size} definitions for #{word}: ##{request.id}")
+      lsp_respond_to_definition(request.id, locations)
     end
 
     def handle_code_action(request)

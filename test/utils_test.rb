@@ -33,5 +33,116 @@ module HamlLsp
       assert_equal 3, HamlLsp::Constant::DiagnosticSeverity::INFORMATION
       assert_equal 4, HamlLsp::Constant::DiagnosticSeverity::HINT
     end
+
+    def test_word_at_position_extracts_simple_word
+      content = "hello world"
+      word = HamlLsp::Utils.word_at_position(content, 0, 3)
+
+      assert_equal "hello", word
+    end
+
+    def test_word_at_position_extracts_word_at_start
+      content = "hello world"
+      word = HamlLsp::Utils.word_at_position(content, 0, 0)
+
+      assert_equal "hello", word
+    end
+
+    def test_word_at_position_extracts_word_at_end
+      content = "hello world"
+      word = HamlLsp::Utils.word_at_position(content, 0, 10)
+
+      assert_equal "world", word
+    end
+
+    def test_word_at_position_extracts_word_with_underscore
+      content = "users_path"
+      word = HamlLsp::Utils.word_at_position(content, 0, 5)
+
+      assert_equal "users_path", word
+    end
+
+    def test_word_at_position_extracts_word_with_numbers
+      content = "user123"
+      word = HamlLsp::Utils.word_at_position(content, 0, 4)
+
+      assert_equal "user123", word
+    end
+
+    def test_word_at_position_from_multiline_content
+      content = "line one\nline two\nline three"
+      word = HamlLsp::Utils.word_at_position(content, 1, 5)
+
+      assert_equal "two", word
+    end
+
+    def test_word_at_position_with_rails_helper
+      content = "  = link_to 'Show User', user_path(@user)"
+      word = HamlLsp::Utils.word_at_position(content, 0, 29)
+
+      assert_equal "user_path", word
+    end
+
+    def test_word_at_position_returns_nil_for_invalid_line
+      content = "hello world"
+      word = HamlLsp::Utils.word_at_position(content, 5, 0)
+
+      assert_nil word
+    end
+
+    def test_word_at_position_returns_nil_for_invalid_character
+      content = "hello"
+      word = HamlLsp::Utils.word_at_position(content, 0, 100)
+
+      assert_nil word
+    end
+
+    def test_word_at_position_at_space_returns_previous_word
+      content = "hello world"
+      word = HamlLsp::Utils.word_at_position(content, 0, 5)
+
+      # When cursor is on a space, it returns the word to the left
+      assert_equal "hello", word
+    end
+
+    def test_word_at_position_returns_nil_for_nil_content
+      word = HamlLsp::Utils.word_at_position(nil, 0, 0)
+
+      assert_nil word
+    end
+
+    def test_word_at_position_returns_nil_for_empty_content
+      word = HamlLsp::Utils.word_at_position("", 0, 0)
+
+      assert_nil word
+    end
+
+    def test_word_at_position_with_special_characters_around
+      content = "link_to('users', users_path)"
+      word = HamlLsp::Utils.word_at_position(content, 0, 20)
+
+      assert_equal "users_path", word
+    end
+
+    def test_word_at_position_extracts_edit_user_path
+      content = "= link_to 'Edit', edit_user_path(@user)"
+      word = HamlLsp::Utils.word_at_position(content, 0, 23)
+
+      assert_equal "edit_user_path", word
+    end
+
+    def test_word_at_position_on_first_character_of_word
+      content = "users_path"
+      word = HamlLsp::Utils.word_at_position(content, 0, 0)
+
+      assert_equal "users_path", word
+    end
+
+    def test_word_at_position_on_last_character_of_word
+      content = "users_path"
+      word = HamlLsp::Utils.word_at_position(content, 0, 9)
+
+      assert_equal "users_path", word
+    end
   end
 end

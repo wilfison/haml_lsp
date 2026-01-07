@@ -22,7 +22,8 @@ module HamlLsp
             HamlLsp::Constant::CodeActionKind::QUICK_FIX
           ],
           resolve_provider: true
-        )
+        ),
+        definition_provider: true
       )
     end
 
@@ -84,6 +85,12 @@ module HamlLsp
 
     def lsp_respond_to_code_action_resolve(id, action)
       HamlLsp::Message::Result.new(id: id, response: action)
+    end
+
+    def lsp_respond_to_definition(id, locations)
+      # Return nil if no locations found, otherwise return array of Location objects
+      response = locations.empty? ? nil : locations
+      HamlLsp::Message::Result.new(id: id, response: response)
     end
 
     def send_message(message)

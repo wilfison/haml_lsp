@@ -60,12 +60,15 @@ module HamlLsp
           matches = route_block.scan(LINE_REGEXP).to_h
           return nil if matches.empty?
 
+          controller_name, controller_action = matches["Controller#Action"].to_s.split("#")
+
           {
             prefix: matches["Prefix"] || last_prefix,
             verbs: [matches["Verb"]],
             uri: matches["URI"],
             params: extract_params(matches["URI"]),
-            controller: matches["Controller#Action"].to_s.split("#").first,
+            controller: controller_name,
+            controller_action: controller_action,
             source_location: matches["Source Location"]
           }
         end

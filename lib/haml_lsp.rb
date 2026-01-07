@@ -37,6 +37,8 @@ require_relative "haml_lsp/completion/attributes"
 require_relative "haml_lsp/completion/routes"
 require_relative "haml_lsp/completion/provider"
 
+require_relative "haml_lsp/definition/routes"
+
 # The main module for HamlLSP
 module HamlLsp
   class Error < StandardError; end
