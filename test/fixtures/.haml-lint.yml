@@ -1,0 +1,21 @@
+linters:
+  LineLength:
+    enabled: true
+    max: 200
+  SpaceInsideHashAttributes:
+    enabled: true
+    style: no_space
+  TrailingWhitespace:
+    enabled: true
+  ClassesBeforeIds:
+    enabled: true
+  SpaceBeforeScript:
+    enabled: true
+  LeadingCommentSpace:
+    enabled: true
+  TrailingEmptyLines:
+    enabled: true
+  HtmlAttributes:
+    enabled: true
+  FinalNewline:
+    enabled: true
