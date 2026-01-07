@@ -58,3 +58,8 @@ Layout/TrailingWhitespace:
   Enabled: true
   Exclude:
     - "test/**/*"
+
+Lint/UnusedMethodArgument:
+  Enabled: true
+  Exclude:
+    - "lib/haml_lsp/autocorrect/*"
