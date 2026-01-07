@@ -13,6 +13,24 @@ A Ruby implementation of the [Language Server Protocol](https://microsoft.github
 - 🎨 **Formatting**: Code formatting support for HAML files
 - 🔧 **Code Actions**: Quick fixes for auto-correctable linting issues
 
+## Roadmap
+
+| Feature          | Type        | Module | Status       |
+| ---------------- | ----------- | ------ | ------------ |
+| Lints            | Diagnostics | Native | ✅ Completed |
+| Autocorrections  |             | Native | ✅ Completed |
+| Quick Fix        | Actions     | Native | ✅ Completed |
+| Auto             | Formatting  | Native | ✅ Completed |
+| Tags             | Completion  | Native | ✅ Completed |
+| Attributes       | Completion  | Rails  | ✅ Completed |
+| Go to controller | CodeLens    | Rails  |              |
+| Routes           | Completion  | Rails  | ✅ Completed |
+| Routes           | Definition  | Rails  |              |
+| Partial          | Completion  | Rails  |              |
+| Partial          | Definition  | Rails  |              |
+| Assets           | Completion  | Rails  |              |
+| Assets           | Definition  | Rails  |              |
+
 ## Installation
 
 Add this line to your application's Gemfile:
