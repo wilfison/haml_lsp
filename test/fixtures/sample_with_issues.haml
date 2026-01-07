@@ -1,0 +1,18 @@
+%html
+  %head
+    %title This is a very long title that will certainly exceed the default line length limit in many linters and should trigger a LineLength offence at least.
+  %body
+    %h1(class="haml-attr" data-html="attr")
+    %p This paragraph has trailing whitespace.             
+    - unused_var = 'unused'
+    = link_to 'Home', :controller => 'home', :action => 'index'     
+    
+
+    
+    = form_for(@user) do |f|
+      .field
+        = f.label :name
+        =   f.text_field :name, class: 'input-field', placeholder: 'Enter your name'
+    -#A comment without space
+    -items.each do |item|
+      %li= item.name

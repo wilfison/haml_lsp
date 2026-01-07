@@ -21,10 +21,10 @@ module HamlLsp
       end
 
       def format_document(template, file_path, options = {})
-        run(template, file_path, options.merge(autocorrect: :safe, autocorrect_only: true))
+        @config = load_applicable_config(options)
+        @source = extract_sources(template, file_path).first
 
-        # calls private #unstrip_frontmatter from document
-        document.send(:unstrip_frontmatter, document.source)
+        autocorrect_template(@source, @config)
       end
 
       private
@@ -32,6 +32,23 @@ module HamlLsp
       # override to use in-memory source
       def extract_sources(template, file_path)
         [HamlLint::Source.new(io: StringIO.new(template), path: file_path)]
+      end
+
+      # Simplify autocorrect to work with in-memory documents
+      def autocorrect_template(source, config)
+        begin
+          document = HamlLint::Document.new(
+            source.contents,
+            file: source.path,
+            config: config,
+            file_on_disk: false,
+            write_to_stdout: false
+          )
+        rescue HamlLint::Exceptions::ParseError
+          return source.contents
+        end
+
+        document.send(:unstrip_frontmatter, document.source)
       end
 
       # @override to use in-memory document

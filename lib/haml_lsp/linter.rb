@@ -3,12 +3,15 @@
 module HamlLsp
   # Linter class to run haml-lint and parse results
   class Linter
-    attr_reader :root_uri, :config_file
+    # The root URI of the project
+    attr_reader :root_uri
+    # The configuration file used for linting
+    attr_reader :config_file
 
-    def initialize(root_uri: false)
+    def initialize(root_uri: false, config_file: nil)
       @root_uri = root_uri
-
-      find_config_file
+      @config_file = config_file || find_config_file
+      @config = nil
     end
 
     def lint_file(file_path, file_content)
@@ -22,7 +25,18 @@ module HamlLsp
       parse_lint_reports(report.lints, file_content)
     end
 
-    private
+    # @return [HamlLint::Configuration]
+    def config
+      @config ||= update_config
+    end
+
+    def config_linters
+      config.hash["linters"] || {}
+    end
+
+    def update_config
+      @config = HamlLint::ConfigurationLoader.load_applicable_config(config_file)
+    end
 
     def runner
       @runner ||= HamlLsp::Lint::Runner.new
@@ -31,6 +45,8 @@ module HamlLsp
     def reporter
       @reporter ||= HamlLint::Reporter::HashReporter.new(HamlLint::Logger.new($stderr))
     end
+
+    private
 
     def find_config_file
       possible_paths = []
@@ -44,7 +60,7 @@ module HamlLsp
       possible_paths << File.join(Dir.pwd, ".haml-lint.yml")
       possible_paths << File.join(Dir.pwd, "config", "haml-lint.yml")
 
-      @config_file = possible_paths.find { |path| File.exist?(path) }
+      possible_paths.find { |path| File.exist?(path) }
     end
 
     def parse_lint_reports(reports, file_content)

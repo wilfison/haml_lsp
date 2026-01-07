@@ -175,10 +175,7 @@ module HamlLsp
     end
 
     def autocorrector
-      @autocorrector ||= HamlLsp::Autocorrector.new(
-        root_uri: root_uri,
-        config_file: linter.config_file
-      )
+      @autocorrector ||= Autocorrect::Base.new(linter: linter)
     end
 
     def completion_provider
