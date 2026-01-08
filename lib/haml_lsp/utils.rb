@@ -22,5 +22,12 @@ module HamlLsp
 
       target_line[(left + 1)...right]
     end
+
+    def self.line_at_position(content, line)
+      lines = content.to_s.lines
+      return nil if line >= lines.size
+
+      lines[line]
+    end
   end
 end

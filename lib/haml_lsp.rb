@@ -35,9 +35,12 @@ require_relative "haml_lsp/rails/routes_extractor"
 require_relative "haml_lsp/completion/tags"
 require_relative "haml_lsp/completion/attributes"
 require_relative "haml_lsp/completion/routes"
+require_relative "haml_lsp/completion/partials"
 require_relative "haml_lsp/completion/provider"
 
 require_relative "haml_lsp/definition/routes"
+require_relative "haml_lsp/definition/partials"
+require_relative "haml_lsp/definition/provider"
 
 # The main module for HamlLSP
 module HamlLsp

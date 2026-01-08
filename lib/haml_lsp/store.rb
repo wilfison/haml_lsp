@@ -25,6 +25,7 @@ module HamlLsp
 
     def delete(uri)
       @documents.delete(uri)
+      nil
     end
 
     def clear

@@ -2,7 +2,7 @@
 
 module HamlLsp
   # Server class to handle LSP requests
-  class Server # rubocop:disable Metrics/ClassLength
+  class Server
     include HamlLsp::ServerResponder
 
     attr_reader :root_uri, :use_bundle, :enable_lint, :rails_routes_cache
@@ -103,29 +103,18 @@ module HamlLsp
     end
 
     def handle_completion(request)
-      items = completion_provider.handle(request, rails_routes_cache)
+      items = completion_provider.handle(request, rails_routes_cache, root_uri)
 
       lsp_respond_to_completion(request.id, items)
     end
 
     def handle_definition(request)
-      return lsp_respond_to_definition(request.id, []) unless rails_project?
-      return lsp_respond_to_definition(request.id, []) if rails_routes_cache.nil? || rails_routes_cache.empty?
-
       document = store.get(request.document_uri)
       return lsp_respond_to_definition(request.id, []) unless document
 
-      # Get the word at the current position
-      word = HamlLsp::Utils.word_at_position(
-        document.content,
-        request.params.dig(:position, :line),
-        request.params.dig(:position, :character)
-      )
+      locations = definition_provider.handle(request, rails_routes_cache, root_uri)
 
-      # Find definition using the routes provider
-      locations = HamlLsp::Definition::Routes.find_definition(word, rails_routes_cache, root_uri)
-
-      send_log_message("Providing #{locations.size} definitions for #{word}: ##{request.id}")
+      HamlLsp.log("##{request.id}: Providing #{locations.size} definitions")
       lsp_respond_to_definition(request.id, locations)
     end
 
@@ -152,7 +141,7 @@ module HamlLsp
         }
       end
 
-      send_log_message("Providing #{actions.size} code actions ##{request.id}")
+      HamlLsp.log("##{request.id}: Providing #{actions.size} code actions")
       lsp_respond_to_code_action(request.id, actions)
     end
 
@@ -203,6 +192,10 @@ module HamlLsp
 
     def completion_provider
       @completion_provider ||= HamlLsp::Completion::Provider.new(store: store, rails_project: rails_project?)
+    end
+
+    def definition_provider
+      @definition_provider ||= HamlLsp::Definition::Provider.new(store: store, rails_project: rails_project?)
     end
 
     def load_rails_routes
