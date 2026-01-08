@@ -26,8 +26,8 @@ A Ruby implementation of the [Language Server Protocol](https://microsoft.github
 | Go to controller | CodeLens    | Rails  |              |
 | Routes           | Completion  | Rails  | ✅ Completed |
 | Routes           | Definition  | Rails  | ✅ Completed |
-| Partial          | Completion  | Rails  |              |
-| Partial          | Definition  | Rails  |              |
+| Partial          | Completion  | Rails  | ✅ Completed |
+| Partial          | Definition  | Rails  | ✅ Completed |
 | Assets           | Completion  | Rails  |              |
 | Assets           | Definition  | Rails  |              |
 
