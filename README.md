@@ -15,21 +15,20 @@ A Ruby implementation of the [Language Server Protocol](https://microsoft.github
 
 ## Roadmap
 
-| Feature          | Type        | Module | Status       |
-| ---------------- | ----------- | ------ | ------------ |
-| Lints            | Diagnostics | Native | ✅ Completed |
-| Autocorrections  |             | Native | ✅ Completed |
-| Quick Fix        | Actions     | Native | ✅ Completed |
-| Auto             | Formatting  | Native | ✅ Completed |
-| Tags             | Completion  | Native | ✅ Completed |
-| Attributes       | Completion  | Rails  | ✅ Completed |
-| Go to controller | CodeLens    | Rails  |              |
-| Routes           | Completion  | Rails  | ✅ Completed |
-| Routes           | Definition  | Rails  | ✅ Completed |
-| Partial          | Completion  | Rails  | ✅ Completed |
-| Partial          | Definition  | Rails  | ✅ Completed |
-| Assets           | Completion  | Rails  |              |
-| Assets           | Definition  | Rails  |              |
+| Feature         | Type        | Module | Status       |
+| --------------- | ----------- | ------ | ------------ |
+| Lints           | Diagnostics | Native | ✅ Completed |
+| Autocorrections |             | Native | ✅ Completed |
+| Quick Fix       | Actions     | Native | ✅ Completed |
+| Autocorrect     | Formatting  | Native | ✅ Completed |
+| Tags            | Completion  | Native | ✅ Completed |
+| Attributes      | Completion  | Rails  | ✅ Completed |
+| Routes          | Completion  | Rails  | ✅ Completed |
+| Routes          | Definition  | Rails  | ✅ Completed |
+| Partial         | Completion  | Rails  | ✅ Completed |
+| Partial         | Definition  | Rails  | ✅ Completed |
+| Assets          | Completion  | Rails  | ✅ Completed |
+| Assets          | Definition  | Rails  |              |
 
 ## Installation
 

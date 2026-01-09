@@ -14,9 +14,11 @@ module HamlLsp
 
       class << self
         # Handles completion requests for partials
+        #
         # @param document_uri_path [String] The current document file path
         # @param line [String] The current line content
         # @param root_uri [String] The workspace root URI
+        #
         # @return [Array<HamlLsp::Interface::CompletionItem>] List of completion items
         def completion_items(document_uri_path, line, root_uri)
           return [] unless root_uri

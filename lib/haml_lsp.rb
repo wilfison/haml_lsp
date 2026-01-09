@@ -36,6 +36,7 @@ require_relative "haml_lsp/completion/tags"
 require_relative "haml_lsp/completion/attributes"
 require_relative "haml_lsp/completion/routes"
 require_relative "haml_lsp/completion/partials"
+require_relative "haml_lsp/completion/assets"
 require_relative "haml_lsp/completion/provider"
 
 require_relative "haml_lsp/definition/routes"

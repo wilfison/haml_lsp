@@ -24,11 +24,13 @@ module HamlLsp
         return [] unless line
 
         items = []
-        items += HamlLsp::Completion::Routes.completion_items(request, line, rails_routes_cache) if rails_project?
+
         if rails_project?
-          items += HamlLsp::Completion::Partials.completion_items(request.document_uri_path, line,
-                                                                  root_uri)
+          items += HamlLsp::Completion::Routes.completion_items(request, line, rails_routes_cache)
+          items += HamlLsp::Completion::Partials.completion_items(request.document_uri_path, line, root_uri)
+          items += HamlLsp::Completion::Assets.completion_items(line, root_uri)
         end
+
         items += HamlLsp::Completion::Tags.completion_items(line)
         items += HamlLsp::Completion::Attributes.completion_items(line)
         items
@@ -45,7 +47,7 @@ module HamlLsp
         position = request.params[:position]
         return nil unless position
 
-        document.word_at_position(position[:line].to_i, position[:character].to_i)
+        document.line_at_position(position[:line].to_i)
       end
     end
   end
