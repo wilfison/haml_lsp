@@ -48,7 +48,7 @@ module HamlLsp
         # @param document_uri_path [String] Current document path
         # @param root_uri [String] Workspace root
         # @return [Array<Hash>] List of matching partial file info
-        def find_partial_files(partial_name, document_uri_path, root_uri)
+        def find_partial_files(partial_name, document_uri_path, root_uri) # rubocop:disable Metrics/MethodLength
           views_path = File.join(root_uri, "app", "views")
           return [] unless Dir.exist?(views_path)
 

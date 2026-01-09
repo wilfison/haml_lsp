@@ -22,7 +22,6 @@ Metrics/MethodLength:
   Max: 30
   Exclude:
     - "test/**/*"
-    - "lib/haml_lsp/definition/partials.rb"
 
 Style/StringLiterals:
   Enabled: true
@@ -60,8 +59,6 @@ Metrics/CyclomaticComplexity:
 Metrics/PerceivedComplexity:
   Enabled: true
   Max: 10
-  Exclude:
-    - "lib/haml_lsp/definition/partials.rb"
 
 Layout/HeredocIndentation:
   Enabled: true
