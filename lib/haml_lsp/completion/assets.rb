@@ -20,7 +20,6 @@ module HamlLsp
       ).freeze
 
       JAVASCRIPT_ASSETS_PATHS = [
-        "app/assets/builds",
         "app/assets/javascripts",
         "app/javascript",
         "app/javascript/packs",
@@ -32,7 +31,6 @@ module HamlLsp
       ].freeze
 
       STYLESHEET_ASSETS_PATHS = [
-        "app/assets/builds",
         "app/assets/stylesheets",
         "app/javascript/stylesheets",
         "app/javascript/styles",

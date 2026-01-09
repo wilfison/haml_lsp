@@ -17,18 +17,18 @@ A Ruby implementation of the [Language Server Protocol](https://microsoft.github
 
 | Feature         | Type        | Module | Status       |
 | --------------- | ----------- | ------ | ------------ |
-| Lints           | Diagnostics | Native | ✅ Completed |
-| Autocorrections |             | Native | ✅ Completed |
-| Quick Fix       | Actions     | Native | ✅ Completed |
-| Autocorrect     | Formatting  | Native | ✅ Completed |
-| Tags            | Completion  | Native | ✅ Completed |
+| Lints           | Diagnostics |        | ✅ Completed |
+| Autocorrections |             |        | ✅ Completed |
+| Quick Fix       | Actions     |        | ✅ Completed |
+| Tags            | Completion  |        | ✅ Completed |
+| html2haml       | Conversion  |        |              |
 | Attributes      | Completion  | Rails  | ✅ Completed |
 | Routes          | Completion  | Rails  | ✅ Completed |
 | Routes          | Definition  | Rails  | ✅ Completed |
 | Partial         | Completion  | Rails  | ✅ Completed |
 | Partial         | Definition  | Rails  | ✅ Completed |
 | Assets          | Completion  | Rails  | ✅ Completed |
-| Assets          | Definition  | Rails  |              |
+| Assets          | Definition  | Rails  | ✅ Completed |
 
 ## Installation
 

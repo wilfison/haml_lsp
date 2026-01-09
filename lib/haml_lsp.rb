@@ -41,6 +41,7 @@ require_relative "haml_lsp/completion/provider"
 
 require_relative "haml_lsp/definition/routes"
 require_relative "haml_lsp/definition/partials"
+require_relative "haml_lsp/definition/assets"
 require_relative "haml_lsp/definition/provider"
 
 # The main module for HamlLSP

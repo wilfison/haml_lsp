@@ -30,8 +30,13 @@ module HamlLsp
         locations = []
         # Try partials definition first (works for both Rails and non-Rails projects)
         locations += partial_locations(line, request.document_uri_path, root_uri) if root_uri
-        # Try Rails routes definition if Rails project
-        locations += route_locations(word, rails_routes_cache, root_uri)
+
+        if rails_project?
+          # Try Rails routes definition if Rails project
+          locations += route_locations(word, rails_routes_cache, root_uri)
+          # Try assets definition (JavaScript, CSS and images)
+          locations += asset_locations(line, root_uri) if root_uri
+        end
 
         locations
       end
@@ -62,6 +67,10 @@ module HamlLsp
         return [] unless rails_project? && rails_routes_cache && !rails_routes_cache.empty?
 
         HamlLsp::Definition::Routes.find_definition(word, rails_routes_cache, root_uri)
+      end
+
+      def asset_locations(line, root_uri)
+        HamlLsp::Definition::Assets.find_definition(line, root_uri)
       end
     end
   end
