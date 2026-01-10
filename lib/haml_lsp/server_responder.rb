@@ -14,7 +14,7 @@ module HamlLsp
           work_done_progress: false
         ),
         completion_provider: HamlLsp::Interface::CompletionOptions.new(
-          trigger_characters: ["_"],
+          trigger_characters: ["_", ":", ".", "@", "#", '"', "'", "("],
           resolve_provider: false
         ),
         code_action_provider: HamlLsp::Interface::CodeActionOptions.new(

@@ -1,0 +1,72 @@
+# frozen_string_literal: true
+
+require "test_helper"
+
+class MockRequest
+  attr_reader :method, :document_uri, :document_content, :document_uri_path, :params, :id
+
+  def initialize(method:, **kwargs)
+    @method = method
+    @document_uri = kwargs[:document_uri]
+    @document_content = kwargs[:document_content]
+    @document_uri_path = kwargs[:document_uri_path]
+    @params = kwargs[:params]
+    @id = kwargs[:id] || 1
+  end
+end
+
+class RequestHandlerTest < Minitest::Test
+  def setup
+    @store = HamlLsp::Store.new
+    @cache_manager = HamlLsp::CacheManager.new(root_uri: nil)
+    @handler = HamlLsp::RequestHandler.new(
+      store: @store,
+      cache_manager: @cache_manager,
+      enable_lint: false,
+      root_uri: nil
+    )
+  end
+
+  def test_handler_initializes_with_dependencies
+    assert_instance_of HamlLsp::RequestHandler, @handler
+  end
+
+  def test_handle_returns_nil_for_unknown_method
+    request = MockRequest.new(method: "unknown/method")
+
+    result = @handler.handle(request)
+
+    assert_nil result
+  end
+
+  def test_handle_delegates_to_strategy
+    request = MockRequest.new(
+      method: "textDocument/didClose",
+      document_uri: "file:///test.haml"
+    )
+
+    result = @handler.handle(request)
+
+    assert_nil result
+  end
+
+  def test_handler_with_enable_lint
+    handler = HamlLsp::RequestHandler.new(
+      store: @store,
+      cache_manager: @cache_manager,
+      enable_lint: true,
+      root_uri: nil
+    )
+
+    request = MockRequest.new(
+      method: "textDocument/didOpen",
+      document_uri: "file:///test.haml",
+      document_content: ".test",
+      document_uri_path: "/test.haml"
+    )
+
+    result = handler.handle(request)
+
+    assert_kind_of HamlLsp::Message::Notification, result
+  end
+end

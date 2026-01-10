@@ -10,7 +10,7 @@ module HamlLsp
       #   render "name"
       #   render(partial: "name")
       #   render partial: "name"
-      LINE_REGEXP = /render\s*\(?\s*(?:partial:\s*["']|["'])/
+      LINE_REGEXP = /render\s*\(?\s*(?:partial:\s*)(["'])/
 
       class << self
         # Handles completion requests for partials
@@ -20,12 +20,21 @@ module HamlLsp
         # @param root_uri [String] The workspace root URI
         #
         # @return [Array<HamlLsp::Interface::CompletionItem>] List of completion items
-        def completion_items(document_uri_path, line, root_uri)
+        def completion_items(request, line, root_uri)
           return [] unless root_uri
-          return [] unless line.match?(LINE_REGEXP)
 
-          partials = find_partials(document_uri_path, root_uri)
-          build_completion_items(partials)
+          match = line.match?(LINE_REGEXP)
+          return [] unless match
+
+          partials = find_partials(request.document_uri_path, root_uri)
+
+          build_completion_items(
+            partials, {
+              position: request.params[:position],
+              explicit: line.match?(/partial:\s*["']/),
+              quote_char: match[1]
+            }
+          )
         end
 
         private
@@ -91,7 +100,7 @@ module HamlLsp
         # @param file [String] Path to partial file
         # @return [Array<Hash>] List of local variables
         def extract_locals(file)
-          content = File.read(file)
+          content = File.foreach(file).first(5).join("\n") # Read first 5 lines
           locals = []
 
           # Match -# locals: (var1:, var2: default_value)
@@ -141,10 +150,11 @@ module HamlLsp
 
         # Build completion items from partials
         # @param partials [Array<Hash>] List of partial info
+        # @param options [Hash] Options hash
         # @return [Array<Hash>] List of completion items
-        def build_completion_items(partials)
+        def build_completion_items(partials, options = {})
           items = partials.map do |partial|
-            build_completion_item(partial)
+            build_completion_item(partial, options)
           end
 
           # Sort by distance (closer first) and mark closest as preselected
@@ -156,9 +166,10 @@ module HamlLsp
 
         # Build a single completion item for a partial
         # @param partial [Hash] Partial info
+        # @param options [Hash] Options hash
         # @return [Hash] Completion item
-        def build_completion_item(partial)
-          snippet = build_partial_snippet(partial)
+        def build_completion_item(partial, options)
+          snippet = build_partial_snippet(partial, options)
           detail = build_detail(partial)
           documentation = build_documentation(partial)
 
@@ -170,22 +181,34 @@ module HamlLsp
             kind: Constant::CompletionItemKind::FILE,
             detail: detail,
             documentation: documentation,
-            insert_text: snippet,
-            insert_text_format: 2, # Snippet format
+            text_edit: {
+              range: {
+                start: options[:position][:character].to_i - 1,
+                end: options[:position][:character].to_i + 1
+              },
+              new_text: snippet
+            },
+            # insert_text: snippet,
+            # insert_text_format: 2, # Snippet format
             sort_text: sort_text
           }
         end
 
         # Build snippet for partial with locals
         # @param partial [Hash] Partial info
+        # @param options [Hash] Options hash
         # @return [String] Snippet text
-        def build_partial_snippet(partial)
-          if partial[:locals].empty?
-            "\"#{partial[:name]}\""
-          else
-            locals_snippet = build_locals_snippet(partial[:locals])
-            "\"#{partial[:name]}\", locals: { #{locals_snippet} }"
-          end
+        def build_partial_snippet(partial, options)
+          partial_name = partial[:name].sub(/(?:\.html)?\.haml$/, "")
+          quote_char = options[:quote_char] || '"'
+          partial_path = "#{quote_char}#{partial_name}#{quote_char}"
+
+          return partial_path if partial[:locals].empty?
+
+          locals_snippet = build_locals_snippet(partial[:locals])
+          return "#{partial_path}, #{locals_snippet}" unless explicit
+
+          "#{partial_path}, locals: { #{locals_snippet} }"
         end
 
         # Build locals snippet
