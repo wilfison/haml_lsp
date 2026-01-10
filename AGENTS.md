@@ -10,14 +10,17 @@ with LSP-compatible editors to enhance HAML development workflows.
 - **bin/** – Development utilities (`console`, `setup`)
 - **exe/** – Executable entry point (`haml_lsp` binary that starts the LSP server)
 - **lib/** – Core library code: server, linter, autocomplete providers, message protocol handlers
-- **lib/haml_lsp/** – Main modules: `Server`, `Linter`, `Store`, `Document`, autocorrector, utils
-- **lib/haml_lsp/haml/** – HAML-specific providers (tags, attributes)
-- **lib/haml_lsp/lint/** – Linting engine integration with `haml_lint`
-- **lib/haml_lsp/message/** – LSP message reader/writer/notification/request/result handlers
-- **lib/haml_lsp/rails/** – Rails project detection and routes extraction for autocomplete
-- **pkg/** – Built gem artifacts
+- **lib/haml_lsp/** – Main modules: `Server`, `Linter`, `Store`, `Document`, `Utils`, `ServerResponder`
+- **lib/haml_lsp/autocorrect/** – Auto-correction implementations for various linting rules (classes_before_ids, final_newline, html_attributes, leading_comment_space, rubocop, space_before_script, trailing_empty_lines, trailing_whitespace)
+- **lib/haml_lsp/completion/** – Completion providers (tags, attributes, routes, partials, assets) and main Provider class
+- **lib/haml_lsp/definition/** – Definition providers (routes, partials, assets) for "go to definition" functionality
+- **lib/haml_lsp/lint/** – Linting engine integration with `haml_lint` (`Runner` class)
+- **lib/haml_lsp/message/** – LSP message protocol handlers (`Base`, `Notification`, `Request`, `Result`, `Reader`, `Writer`)
+- **lib/haml_lsp/rails/** – Rails project detection (`Detector`) and routes extraction (`RoutesExtractor`)
+- **pkg/** – Built gem artifacts (generated, not tracked in git)
 - **sig/** – RBS type signatures for type-checking
-- **test/** – Minitest suite covering all components
+- **test/** – Minitest suite with comprehensive coverage for all components
+- **test/fixtures/** – Test fixtures (sample HAML files for testing)
 
 ## Build & Development Commands
 
@@ -60,7 +63,7 @@ bundle exec rake install
 **Start the LSP server manually:**
 
 ```bash
-bundle exec haml_lsp --stdio
+bundle exec haml_lsp
 # Optional flags:
 # --use-bundle     Use bundler context
 # --enable-lint    Enable linting diagnostics
@@ -81,7 +84,11 @@ bin/console
 - Double quotes for strings (`"example"`)
 - Frozen string literal pragma on all files (`# frozen_string_literal: true`)
 - Nested class/module style enforced (`class Outer; class Inner; end; end`)
-- Max method length: 20 lines (configurable exceptions for complex handlers)
+- Max method length: 30 lines (excluding tests)
+- Max class/module length: 200 lines (excluding tests)
+- Max ABC size: 30 (excluding tests)
+- Max cyclomatic complexity: 10
+- Max perceived complexity: 10
 
 **Naming:**
 
@@ -95,10 +102,25 @@ bin/console
 - Target Ruby 3.2+
 - NewCops enabled automatically
 - Minitest multiple-assertion rule disabled for tests
+- Display cop names and style guide enabled
+- Safe auto-correct enabled for frozen string literals and class/module children
+- Specific exclusions for test files and complex definition providers
+
+**Development dependencies:**
+
+- `haml_lint ~> 0.67` – HAML linting engine
+- `language_server-protocol ~> 3.17.0` – LSP protocol implementation
+- `minitest ~> 5.0` – Testing framework
+- `rake ~> 13.0` – Build tool
+- `rubocop`, `rubocop-minitest`, `rubocop-rake` – Linting and style checking
+- `irb` – Interactive console
+- `ostruct` – Data structures
 
 **Commit messages:**
 
-> TODO: Document commit message conventions if applicable
+- Conventional style preferred (feat, fix, docs, refactor, test, etc.)
+- Keep first line concise and descriptive
+- Follow standard Git commit message best practices
 
 ## Architecture Notes
 
@@ -155,11 +177,13 @@ bin/console
 - `test/haml_lsp_test.rb` – main module sanity
 - `test/server_test.rb`, `server_responder_test.rb` – LSP lifecycle and message handling
 - `test/linter_test.rb`, `lint_runner_test.rb` – diagnostics generation
-- `test/autocorrector_test.rb` – formatting
-- `test/haml_*_provider_test.rb` – completion sources
+- `test/autocorrect/*_test.rb` – formatting and auto-correction tests for all correctors
+- `test/completion/*_test.rb` – completion providers (tags, attributes, routes, partials, assets)
+- `test/definition/*_test.rb` – definition providers (routes, partials, assets)
 - `test/rails_*.rb` – Rails detection and route extraction
 - `test/message_classes_test.rb` – protocol message serialization
 - `test/document_test.rb`, `store_test.rb` – document state management
+- `test/utils_test.rb` – utility functions
 
 **Running locally:**
 
@@ -169,7 +193,9 @@ bundle exec rake test
 
 **CI:**
 
-> TODO: Document CI configuration (GitHub Actions, etc.) if present
+- No CI configuration at the moment (no GitHub Actions, CircleCI, etc.)
+- Tests can be run locally with `bundle exec rake test`
+- Linting can be run locally with `bundle exec rake rubocop`
 
 **Test helpers:**
 
@@ -180,7 +206,9 @@ bundle exec rake test
 
 **Secrets handling:**
 
-> TODO: Document any secrets management if LSP needs credentials
+- LSP runs locally via stdio, with no network communication
+- No credential or secret management
+- Workspace root is passed via `--root-uri` flag or `PWD` environment variable
 
 **Dependency scanning:**
 
@@ -189,7 +217,7 @@ bundle exec rake test
 
 **License:**
 
-- MIT License (see `LICENSE.txt`)
+- MIT License (repository currently has no LICENSE.txt file)
 
 **Guardrails:**
 
@@ -223,6 +251,9 @@ bundle exec rake test
 - Do not auto-generate RBS signatures without cross-checking against actual usage
 - Preserve frozen string literal comments
 - Maintain test coverage for new features
+- **All code, comments, documentation, commit messages, and error messages must be written in English**
+- Use English for variable names, method names, class names, and all identifiers
+- Documentation strings, inline comments, and test descriptions must be in English
 
 ## Extensibility Hooks
 

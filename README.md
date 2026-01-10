@@ -2,6 +2,8 @@
 
 A Ruby implementation of the [Language Server Protocol](https://microsoft.github.io/language-server-protocol/) for HAML templates. This language server provides intelligent code assistance for HAML files in editors that support LSP.
 
+The LSP server runs locally via [stdio](https://en.wikipedia.org/wiki/C_file_input/output) with no network communication, ensuring your code stays private and secure.
+
 > [!WARNING]
 > This project is currently in early development. Features may be incomplete or unstable. Contributions and feedback are welcome!
 
@@ -9,26 +11,31 @@ A Ruby implementation of the [Language Server Protocol](https://microsoft.github
 
 - 🎯 **Syntax Validation**: Real-time diagnostics for HAML syntax errors (when `--enable-lint` flag is used)
 - 🔍 **Code Completion**: Intelligent autocomplete for HAML tags and attributes
-- 🚀 **Rails Routes Completion**: Autocomplete for Rails route helpers when working in a Rails project
+- 🚀 **Rails Integration**:
+  - Autocomplete for Rails route helpers
+  - Autocomplete for partials (`render` statements)
+  - Autocomplete for asset paths (JavaScript, CSS, images)
+  - Go to definition for routes, partials, and assets
 - 🎨 **Formatting**: Code formatting support for HAML files
 - 🔧 **Code Actions**: Quick fixes for auto-correctable linting issues
 
 ## Roadmap
 
-| Feature         | Type        | Module | Status       |
-| --------------- | ----------- | ------ | ------------ |
-| Lints           | Diagnostics |        | ✅ Completed |
-| Autocorrections |             |        | ✅ Completed |
-| Quick Fix       | Actions     |        | ✅ Completed |
-| Tags            | Completion  |        | ✅ Completed |
-| html2haml       | Conversion  |        |              |
-| Attributes      | Completion  | Rails  | ✅ Completed |
-| Routes          | Completion  | Rails  | ✅ Completed |
-| Routes          | Definition  | Rails  | ✅ Completed |
-| Partial         | Completion  | Rails  | ✅ Completed |
-| Partial         | Definition  | Rails  | ✅ Completed |
-| Assets          | Completion  | Rails  | ✅ Completed |
-| Assets          | Definition  | Rails  | ✅ Completed |
+| Feature              | Type        | Module | Status         | Provided by                                    |
+| -------------------- | ----------- | ------ | -------------- | ---------------------------------------------- |
+| Lints                | Diagnostics |        | ✅ Completed   | [haml_lint](https://github.com/sds/haml-lint)  |
+| html2haml            | Conversion  |        | ⏳ In Progress | [html2haml](https://github.com/haml/html2haml) |
+| Ruby Autocorrections |             |        | ✅ Completed   | [rubocop](https://github.com/rubocop/rubocop)  |
+| HAML Autocorrections |             |        | ✅ Completed   |                                                |
+| Quick Fix            | Actions     |        | ✅ Completed   |                                                |
+| Tags                 | Completion  |        | ✅ Completed   |                                                |
+| Attributes           | Completion  | Rails  | ✅ Completed   |                                                |
+| Routes               | Completion  | Rails  | ✅ Completed   |                                                |
+| Routes               | Definition  | Rails  | ✅ Completed   |                                                |
+| Partial              | Completion  | Rails  | ✅ Completed   |                                                |
+| Partial              | Definition  | Rails  | ✅ Completed   |                                                |
+| Assets               | Completion  | Rails  | ✅ Completed   |                                                |
+| Assets               | Definition  | Rails  | ✅ Completed   |                                                |
 
 ## Installation
 
@@ -50,12 +57,35 @@ Or install it yourself as:
 gem install haml_lsp
 ```
 
+## Editor Integration
+
+### VS Code
+
+No extension is available yet for VS Code. You can configure the LSP client manually or wait for the official extension.
+
+### Neovim
+
+For Neovim users, you can configure HAML LSP using [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig):
+
+```lua
+require'lspconfig'.haml_lsp.setup{
+  cmd = { "haml_lsp" },
+  filetypes = { "haml" },
+  root_dir = require'lspconfig'.util.root_pattern(".git", "Gemfile"),
+  settings = {},
+}
+```
+
+### Other Editors
+
+Any editor that supports the Language Server Protocol can be configured to use HAML LSP. Refer to your editor's LSP client documentation for configuration instructions.
+
 ## Usage
 
 The HAML LSP server can be started manually and integrated with any LSP-compatible editor:
 
 ```bash
-haml_lsp --stdio
+haml_lsp
 ```
 
 **Available flags:**
@@ -67,7 +97,7 @@ haml_lsp --stdio
 **Example with all flags:**
 
 ```bash
-haml_lsp --stdio --enable-lint --use-bundle --root-uri=file:///home/user/my-rails-app
+haml_lsp --enable-lint --use-bundle --root-uri=file:///home/user/my-rails-app
 ```
 
 > **Note:** Editor-specific extensions and plugins are currently in development. For now, you'll need to configure your editor's LSP client manually to use the `haml_lsp` command.
@@ -121,6 +151,36 @@ When working in a Rails project, HAML LSP automatically detects your project and
 - Full route information
 
 The route helpers are extracted by running `rake routes` (or `bundle exec rake routes` if using bundler) when the LSP server initializes.
+
+**Partials Completion**: Autocomplete for partial render statements:
+
+- `render partial:` - Shows available partials in `app/views`
+- `render` - Suggests partial paths relative to current file
+- Supports both explicit `partial:` syntax and implicit partial rendering
+
+**Assets Completion**: Autocomplete for asset helper paths:
+
+- JavaScript files in `app/javascript` or `app/assets/javascripts`
+- Stylesheets in `app/assets/stylesheets`
+- Images in `app/assets/images`
+
+### Go to Definition
+
+HAML LSP supports "Go to Definition" for Rails projects:
+
+**Route Helpers**: Jump directly to the route definition in `config/routes.rb` by clicking on any route helper (e.g., `users_path`, `edit_user_path`).
+
+**Partials**: Navigate to partial files by clicking on `render` statements. Supports:
+
+- Full paths: `render partial: "shared/header"`
+- Relative paths: `render "header"`
+- Shorthand syntax: `render @user`
+
+**Assets**: Jump to asset files by clicking on asset helper calls:
+
+- `javascript_include_tag "application"`
+- `stylesheet_link_tag "application"`
+- `image_tag "logo.png"`
 
 ## Development
 
