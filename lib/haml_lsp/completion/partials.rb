@@ -10,12 +10,12 @@ module HamlLsp
       #   render "name"
       #   render(partial: "name")
       #   render partial: "name"
-      LINE_REGEXP = /render\s*\(?\s*(?:partial:\s*)(["'])/
+      LINE_REGEXP = /render\s*\(?\s*(?:partial:\s*)?(["'])/
 
       class << self
         # Handles completion requests for partials
         #
-        # @param document_uri_path [String] The current document file path
+        # @param request [HamlLsp::Interface::Request] The LSP request object
         # @param line [String] The current line content
         # @param root_uri [String] The workspace root URI
         #
@@ -23,7 +23,7 @@ module HamlLsp
         def completion_items(request, line, root_uri)
           return [] unless root_uri
 
-          match = line.match?(LINE_REGEXP)
+          match = line.match(LINE_REGEXP)
           return [] unless match
 
           partials = find_partials(request.document_uri_path, root_uri)
@@ -188,8 +188,6 @@ module HamlLsp
               },
               new_text: snippet
             },
-            # insert_text: snippet,
-            # insert_text_format: 2, # Snippet format
             sort_text: sort_text
           }
         end
@@ -206,7 +204,7 @@ module HamlLsp
           return partial_path if partial[:locals].empty?
 
           locals_snippet = build_locals_snippet(partial[:locals])
-          return "#{partial_path}, #{locals_snippet}" unless explicit
+          return "#{partial_path}, #{locals_snippet}" unless options[:explicit]
 
           "#{partial_path}, locals: { #{locals_snippet} }"
         end
@@ -216,12 +214,7 @@ module HamlLsp
         # @return [String] Snippet for locals hash
         def build_locals_snippet(locals)
           locals.map.with_index do |local, index|
-            placeholder_index = index + 1
-            if local[:required]
-              "#{local[:name]}: ${#{placeholder_index}:value}"
-            else
-              "${#{placeholder_index}:#{local[:name]}: #{local[:default]}}"
-            end
+            "${#{index + 1}:#{local[:name]}: #{local[:default]}}"
           end.join(", ")
         end
 

@@ -9,7 +9,7 @@ enable_lint = ARGV.include?("--enable-lint")
 root_uri = ARGV.find { |arg| arg.start_with?("--root-uri=") }&.sub("--root-uri=", "")
 root_uri ||= ENV["PWD"] ? "file://#{ENV["PWD"]}" : nil
 
-HamlLsp::Server.new(
+HamlLsp::Server::Base.new(
   use_bundle: use_bundle,
   enable_lint: enable_lint,
   root_uri: root_uri
