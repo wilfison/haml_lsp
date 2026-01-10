@@ -236,7 +236,7 @@ bundle exec rake test
 
 **Required human reviews:**
 
-- Changes to LSP protocol handling (`lib/haml_lsp/server.rb`, `server_responder.rb`)
+- Changes to LSP protocol handling (`lib/haml_lsp/server/base.rb`, `lib/haml_lsp/server/responder.rb`)
 - New completion providers or Rails integration logic
 - Gemspec version bumps or dependency updates
 - Test fixtures that validate LSP message formats
