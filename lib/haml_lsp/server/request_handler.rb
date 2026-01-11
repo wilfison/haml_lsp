@@ -85,6 +85,7 @@ module HamlLsp
           @root_uri
         )
 
+        HamlLsp.log("##{request.id}: Providing #{items.size} completion items")
         lsp_respond_to_completion(request.id, items)
       end
 
