@@ -29,5 +29,15 @@ module HamlLsp
 
       lines[line]
     end
+
+    def self.full_content_range(content)
+      line_count = content.lines.size
+      last_line_length = content.lines.last&.chomp&.length || 0
+
+      Interface::Range.new(
+        start: Interface::Position.new(line: 0, character: 0),
+        end: Interface::Position.new(line: line_count, character: last_line_length)
+      )
+    end
   end
 end

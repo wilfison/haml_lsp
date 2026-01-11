@@ -31,7 +31,7 @@ module HamlLsp
       def lsp_respond_to_formatting(id, formatted_content)
         response = [
           HamlLsp::Interface::TextEdit.new(
-            range: full_content_range(formatted_content),
+            range: HamlLsp::Utils.full_content_range(formatted_content),
             new_text: formatted_content
           )
         ]
@@ -84,17 +84,6 @@ module HamlLsp
 
       def show_error_message(text)
         send_message(HamlLsp::Message::Notification.window_show_message(text, type: HamlLsp::Constant::MessageType::ERROR))
-      end
-
-      # returns a Range that covers the full content
-      def full_content_range(content)
-        line_count = content.lines.size
-        last_line_length = content.lines.last&.chomp&.length || 0
-
-        HamlLsp::Interface::Range.new(
-          start: HamlLsp::Interface::Position.new(line: 0, character: 0),
-          end: HamlLsp::Interface::Position.new(line: line_count, character: last_line_length)
-        )
       end
     end
   end

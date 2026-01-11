@@ -8,7 +8,7 @@ module HamlLsp
 
       def initialize(data = {})
         @id = data[:id]
-        super(method: data[:method], params: data[:params])
+        super(method: data[:method], params: data[:params] || {})
       end
 
       def root_uri
@@ -16,7 +16,10 @@ module HamlLsp
       end
 
       def document_uri
-        params[:textDocument][:uri] if params && params[:textDocument]
+        return params[:textDocument][:uri] if params && params[:textDocument]
+        return params[:data][:uri] if params && params[:data] && params[:data][:uri]
+
+        params[:uri]
       end
 
       def document_uri_path

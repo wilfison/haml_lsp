@@ -19,18 +19,20 @@ module HamlLsp
         "FinalNewline" => Autocorrect::FinalNewline # needs to be last
       }.freeze
 
+      class << self
+        # Check if a diagnostic can be autocorrected
+        # Only RuboCop lints support autocorrection
+        def autocorrectable?(diagnostic)
+          diagnostic[:source] == "rubocop"
+        end
+
+        def autocorrectable_diagnostics(diagnostics)
+          diagnostics.select { |diag| diag[:source] == "rubocop" }
+        end
+      end
+
       def initialize(linter: nil)
         @linter = linter
-      end
-
-      # Check if a diagnostic can be autocorrected
-      # Only RuboCop lints support autocorrection
-      def autocorrectable?(diagnostic)
-        diagnostic[:source] == "rubocop"
-      end
-
-      def autocorrectable_diagnostics(diagnostics)
-        diagnostics.select { |diag| diag[:source] == "rubocop" }
       end
 
       # Autocorrect a specific file content

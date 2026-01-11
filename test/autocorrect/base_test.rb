@@ -16,7 +16,7 @@ module Autocorrect
         { source: "rubocop", message: "Classes should be before IDs." }
       ]
 
-      autocorrectable = @autocorrector.autocorrectable_diagnostics(diagnostics)
+      autocorrectable = HamlLsp::Autocorrect::Base.autocorrectable_diagnostics(diagnostics)
 
       assert_equal(2, autocorrectable.size)
       assert_equal("rubocop", autocorrectable[0][:source])
@@ -27,8 +27,8 @@ module Autocorrect
       diagnostic_rubocop = { source: "rubocop", message: "Some lint." }
       diagnostic_haml_lint = { source: "haml_lint", message: "Some lint." }
 
-      assert(@autocorrector.autocorrectable?(diagnostic_rubocop))
-      refute(@autocorrector.autocorrectable?(diagnostic_haml_lint))
+      assert(HamlLsp::Autocorrect::Base.autocorrectable?(diagnostic_rubocop))
+      refute(HamlLsp::Autocorrect::Base.autocorrectable?(diagnostic_haml_lint))
     end
 
     def test_autocorrect_applies_rubocop_and_row_by_row_fixes

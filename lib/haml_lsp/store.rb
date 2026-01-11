@@ -14,6 +14,8 @@ module HamlLsp
     end
 
     def set(uri, content)
+      return nil unless uri && content
+
       if @documents[uri]
         @documents[uri].update_content(content)
       else

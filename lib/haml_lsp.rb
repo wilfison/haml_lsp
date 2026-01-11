@@ -13,6 +13,9 @@ require_relative "haml_lsp/message/reader"
 require_relative "haml_lsp/message/writer"
 require_relative "haml_lsp/message/result"
 
+require_relative "haml_lsp/action/diagnostic"
+require_relative "haml_lsp/action/provider"
+
 require_relative "haml_lsp/autocorrect/classes_before_ids"
 require_relative "haml_lsp/autocorrect/final_newline"
 require_relative "haml_lsp/autocorrect/html_attributes"
@@ -25,6 +28,7 @@ require_relative "haml_lsp/autocorrect/base"
 
 require_relative "haml_lsp/linter"
 require_relative "haml_lsp/lint/runner"
+
 require_relative "haml_lsp/store"
 require_relative "haml_lsp/document"
 require_relative "haml_lsp/rails/detector"

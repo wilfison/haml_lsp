@@ -21,10 +21,9 @@ module HamlLsp
       end
 
       def format_document(template, file_path, options = {})
-        @config = load_applicable_config(options)
-        @source = extract_sources(template, file_path).first
+        config = load_applicable_config(options)
 
-        autocorrect_template(@source, @config)
+        autocorrect_template(template, file_path, config)
       end
 
       private
@@ -35,17 +34,17 @@ module HamlLsp
       end
 
       # Simplify autocorrect to work with in-memory documents
-      def autocorrect_template(source, config)
+      def autocorrect_template(template, file_path, config)
         begin
           document = HamlLint::Document.new(
-            source.contents,
-            file: source.path,
+            template,
+            file: file_path,
             config: config,
             file_on_disk: false,
             write_to_stdout: false
           )
         rescue HamlLint::Exceptions::ParseError
-          return source.contents
+          return template
         end
 
         document.send(:unstrip_frontmatter, document.source)
