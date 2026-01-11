@@ -15,6 +15,7 @@ require_relative "haml_lsp/message/writer"
 require_relative "haml_lsp/message/result"
 
 require_relative "haml_lsp/action/diagnostic"
+require_relative "haml_lsp/action/html_to_haml"
 require_relative "haml_lsp/action/provider"
 
 require_relative "haml_lsp/autocorrect/classes_before_ids"

@@ -21,21 +21,21 @@ The LSP server runs locally via [stdio](https://en.wikipedia.org/wiki/C_file_inp
 
 ## Roadmap
 
-| Feature              | Type        | Module | Status         | Provided by                                    |
-| -------------------- | ----------- | ------ | -------------- | ---------------------------------------------- |
-| Lints                | Diagnostics |        | ✅ Completed   | [haml_lint](https://github.com/sds/haml-lint)  |
-| html2haml            | Conversion  |        | ⏳ In Progress | [html2haml](https://github.com/haml/html2haml) |
-| Ruby Autocorrections |             |        | ✅ Completed   | [rubocop](https://github.com/rubocop/rubocop)  |
-| HAML Autocorrections |             |        | ✅ Completed   |                                                |
-| Quick Fix            | Actions     |        | ✅ Completed   |                                                |
-| Tags                 | Completion  |        | ✅ Completed   |                                                |
-| Attributes           | Completion  | Rails  | ✅ Completed   |                                                |
-| Routes               | Completion  | Rails  | ✅ Completed   |                                                |
-| Routes               | Definition  | Rails  | ✅ Completed   |                                                |
-| Partial              | Completion  | Rails  | ✅ Completed   |                                                |
-| Partial              | Definition  | Rails  | ✅ Completed   |                                                |
-| Assets               | Completion  | Rails  | ✅ Completed   |                                                |
-| Assets               | Definition  | Rails  | ✅ Completed   |                                                |
+| Feature              | Type        | Module | Status       | Provided by                                    |
+| -------------------- | ----------- | ------ | ------------ | ---------------------------------------------- |
+| Lints                | Diagnostics |        | ✅ Completed | [haml_lint](https://github.com/sds/haml-lint)  |
+| html2haml            | Conversion  |        | ✅ Completed | [html2haml](https://github.com/haml/html2haml) |
+| Ruby Autocorrections |             |        | ✅ Completed | [rubocop](https://github.com/rubocop/rubocop)  |
+| HAML Autocorrections |             |        | ✅ Completed |                                                |
+| Quick Fix            | Actions     |        | ✅ Completed |                                                |
+| Tags                 | Completion  |        | ✅ Completed |                                                |
+| Attributes           | Completion  | Rails  | ✅ Completed |                                                |
+| Routes               | Completion  | Rails  | ✅ Completed |                                                |
+| Routes               | Definition  | Rails  | ✅ Completed |                                                |
+| Partial              | Completion  | Rails  | ✅ Completed |                                                |
+| Partial              | Definition  | Rails  | ✅ Completed |                                                |
+| Assets               | Completion  | Rails  | ✅ Completed |                                                |
+| Assets               | Definition  | Rails  | ✅ Completed |                                                |
 
 ## Installation
 

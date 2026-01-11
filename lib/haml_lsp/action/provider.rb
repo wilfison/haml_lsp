@@ -7,16 +7,18 @@ module HamlLsp
       def handle_request(request, enable_lint: true)
         actions = []
         actions += Action::Diagnostic.action_items(request) if enable_lint
+        actions += Action::HtmlToHaml.action_items(request)
         actions
       end
 
       def handle_resolve(request, document, autocorrector)
         return nil if document.content.nil?
 
-        if request.params[:kind] == HamlLsp::Constant::CodeActionKind::QUICK_FIX
+        case request.params[:kind]
+        when HamlLsp::Constant::CodeActionKind::QUICK_FIX
           Action::Diagnostic.action_resolver_items(request, document, autocorrector)
-        else
-          nil
+        when HamlLsp::Constant::CodeActionKind::REFACTOR
+          Action::HtmlToHaml.action_resolver_items(request, document)
         end
       end
     end
