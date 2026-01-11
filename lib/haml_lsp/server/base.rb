@@ -26,10 +26,10 @@ module HamlLsp
       end
 
       def start
-        send_log_message("Starting HAML LSP")
-        send_log_message("    Use bundle: #{@use_bundle}")
-        send_log_message("    Enable lint: #{@enable_lint}")
-        send_log_message("    Root URI: #{@root_uri || "not set"}")
+        HamlLsp.log("Starting HAML LSP")
+        HamlLsp.log("    Use bundle: #{@use_bundle}")
+        HamlLsp.log("    Enable lint: #{@enable_lint}")
+        HamlLsp.log("    Root URI: #{@root_uri || "not set"}")
 
         HamlLsp.reader.each_message do |message|
           response_message = @request_handler.handle(message)
@@ -37,8 +37,8 @@ module HamlLsp
 
           send_message(response_message)
         rescue StandardError => e
-          send_log_message_error("Fatal error (##{message.id}:#{message.method}): #{e.message}")
-          send_log_message_error(e.backtrace.join("\n"))
+          HamlLsp.log_error("Fatal error (##{message.id}:#{message.method}): #{e.message}")
+          HamlLsp.log_error(e.backtrace.join("\n"))
           exit(1)
         end
       end

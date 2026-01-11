@@ -122,7 +122,6 @@ module HamlLsp
         # Add edit to code action
         action = action_provider.handle_resolve(request, document, autocorrector)
 
-        send_log_message("Autocorrected code action for #{uri}")
         lsp_respond_to_code_action_resolve(request.id, action)
       end
 

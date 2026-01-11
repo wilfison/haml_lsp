@@ -21,9 +21,7 @@ module HamlLsp
       end
 
       def test_lsp_respond_to_initialize
-        @server.lsp_respond_to_initialize(1)
-
-        response = @server.last_response
+        response = @server.lsp_respond_to_initialize(1)
 
         assert_instance_of HamlLsp::Message::Result, response
         assert_equal 1, response.id
@@ -32,9 +30,7 @@ module HamlLsp
 
       def test_lsp_respond_to_diagnostics
         diagnostics = []
-        @server.lsp_respond_to_diagnostics("file:///test.haml", diagnostics)
-
-        notification = @server.last_response
+        notification = @server.lsp_respond_to_diagnostics("file:///test.haml", diagnostics)
 
         assert_instance_of HamlLsp::Message::Notification, notification
         assert_equal "textDocument/publishDiagnostics", notification.method

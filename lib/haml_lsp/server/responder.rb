@@ -13,9 +13,7 @@ module HamlLsp
           }
         )
 
-        response = HamlLsp::Message::Result.new(id: id, response: result)
-        send_message(response)
-        response
+        HamlLsp::Message::Result.new(id: id, response: result)
       end
 
       def lsp_respond_to_shutdown(request)
@@ -23,9 +21,7 @@ module HamlLsp
       end
 
       def lsp_respond_to_diagnostics(uri, diagnostics)
-        notification = HamlLsp::Message::Notification.publish_diagnostics(uri, diagnostics)
-        send_message(notification)
-        notification
+        HamlLsp::Message::Notification.publish_diagnostics(uri, diagnostics)
       end
 
       def lsp_respond_to_formatting(id, formatted_content)
@@ -72,14 +68,6 @@ module HamlLsp
 
       def send_message(message)
         HamlLsp.writer.write(message.to_hash)
-      end
-
-      def send_log_message(message, type: HamlLsp::Constant::MessageType::LOG)
-        send_message(HamlLsp::Message::Notification.window_log_message(message, type: type))
-      end
-
-      def send_log_message_error(message)
-        send_log_message(message, type: HamlLsp::Constant::MessageType::ERROR)
       end
 
       def show_error_message(text)
