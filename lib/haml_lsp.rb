@@ -42,6 +42,7 @@ require_relative "haml_lsp/definition/partials"
 require_relative "haml_lsp/definition/assets"
 require_relative "haml_lsp/definition/provider"
 
+require_relative "haml_lsp/server/capabilities"
 require_relative "haml_lsp/server/responder"
 require_relative "haml_lsp/server/cache_manager"
 require_relative "haml_lsp/server/request_handler"
