@@ -33,6 +33,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency "haml_lint", "~> 0.67"
+  spec.add_dependency "html2haml", "~> 2.3"
   spec.add_dependency "language_server-protocol", "~> 3.17.0"
 
   # For more information and examples about making a new gem, check out our

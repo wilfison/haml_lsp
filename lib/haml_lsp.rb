@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "haml_lint"
+require "html2haml"
 require "language_server/protocol"
 
 require_relative "haml_lsp/version"
