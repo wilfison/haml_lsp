@@ -11,7 +11,7 @@ module HamlLsp
 
       def test_rails_project_returns_false_for_non_rails_project
         Dir.mktmpdir do |dir|
-          refute HamlLsp::Rails::Detector.rails_project?("file://#{dir}")
+          refute HamlLsp::Rails::Detector.rails_project?(dir)
         end
       end
 
@@ -23,7 +23,7 @@ module HamlLsp
           File.write(File.join(dir, "Gemfile"), "")
           File.write(File.join(dir, "config", "routes.rb"), "")
 
-          assert HamlLsp::Rails::Detector.rails_project?("file://#{dir}")
+          assert HamlLsp::Rails::Detector.rails_project?(dir)
         end
       end
 
@@ -33,7 +33,7 @@ module HamlLsp
           FileUtils.mkdir_p(File.join(dir, "config"))
           File.write(File.join(dir, "Gemfile"), "")
 
-          refute HamlLsp::Rails::Detector.rails_project?("file://#{dir}")
+          refute HamlLsp::Rails::Detector.rails_project?(dir)
         end
       end
     end

@@ -32,7 +32,8 @@ module HamlLsp
         @rails_routes_cache = HamlLsp::Rails::RoutesExtractor.extract_routes(@root_uri)
         HamlLsp.log("Loaded #{@rails_routes_cache.keys.size} Rails routes for autocompletion")
       rescue StandardError => e
-        warn("[haml-lsp] Error extracting Rails routes: #{e.message}")
+        HamlLsp.log_error("Error extracting Rails routes")
+        HamlLsp.log_error(e.message)
         {}
       end
     end

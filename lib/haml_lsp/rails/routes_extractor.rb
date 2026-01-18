@@ -12,15 +12,13 @@ module HamlLsp
 
           routes_output = fetch_routes_output(root_path)
           parse_routes(routes_output, root_path)
-        rescue StandardError => e
-          raise "Error extracting routes: #{e.message}"
         end
 
         def fetch_routes_output(root_path)
-          cmd = "./bin/rails routes --expanded"
+          cmd = "bundle exec rails routes --expanded"
 
           Dir.chdir(root_path) do
-            `#{cmd} # 2>/dev/null`
+            `#{cmd} 2>/dev/null`
           end
         end
 
