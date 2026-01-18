@@ -4,10 +4,9 @@ module HamlLsp
   module Rails
     # Module to detect if a project is a Rails project
     module Detector
-      def self.rails_project?(root_uri)
-        return false unless root_uri
+      def self.rails_project?(root_path)
+        return false unless root_path
 
-        root_path = URI.decode_uri_component(root_uri.sub("file://", ""))
         rails_indicator_files = [
           "config/application.rb",
           "Gemfile",
