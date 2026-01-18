@@ -6,11 +6,12 @@ module HamlLsp
     class RequestHandler
       include HamlLsp::Server::Responder
 
-      def initialize(store:, cache_manager:, enable_lint: false, root_uri: nil)
+      def initialize(store:, cache_manager:, enable_lint: false, root_uri: nil, server: nil)
         @store = store
         @cache_manager = cache_manager
         @enable_lint = enable_lint
         @root_uri = root_uri
+        @server = server
       end
 
       def handle(request)
@@ -33,6 +34,7 @@ module HamlLsp
       def strategies
         @strategies ||= {
           "initialize" => method(:handle_initialize),
+          "initialized" => method(:handle_initialized),
           "textDocument/didOpen" => method(:handle_did_change),
           "textDocument/didChange" => method(:handle_did_change),
           "textDocument/didSave" => method(:handle_did_change),
@@ -49,6 +51,24 @@ module HamlLsp
 
       def handle_initialize(request)
         lsp_respond_to_initialize(request.id)
+      end
+
+      def handle_initialized(_request)
+        return nil unless @server
+
+        progress_token = "haml-lsp-init-#{Time.now.to_i}"
+        @server.create_work_done_progress_token(progress_token)
+
+        @server.send_progress_begin(progress_token, "Initializing HAML LSP")
+
+        if @cache_manager.rails_project?
+          @server.send_progress_report(progress_token, message: "Loading Rails routes...", percentage: 50)
+          @cache_manager.rails_routes
+        end
+
+        @server.send_progress_end(progress_token)
+
+        nil
       end
 
       def handle_did_change(request)

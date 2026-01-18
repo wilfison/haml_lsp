@@ -12,6 +12,7 @@ module HamlLsp
         @root_uri = URI.decode_uri_component(root_uri.sub("file://", "")) if root_uri
         @use_bundle = use_bundle
         @enable_lint = enable_lint
+        @initialized = false
 
         @state_manager = HamlLsp::Server::StateManager.new
         @cache_manager = HamlLsp::Server::CacheManager.new(root_uri: @root_uri, use_bundle: @use_bundle)
@@ -19,10 +20,9 @@ module HamlLsp
           store: store,
           cache_manager: @cache_manager,
           enable_lint: @enable_lint,
-          root_uri: @root_uri
+          root_uri: @root_uri,
+          server: self
         )
-
-        @cache_manager.rails_routes if @cache_manager.rails_project?
       end
 
       def start

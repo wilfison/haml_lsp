@@ -58,6 +58,36 @@ module HamlLsp
 
         assert_kind_of HamlLsp::Message::Notification, result
       end
+
+      def test_handle_initialized_without_server
+        request = MockRequest.new(method: "initialized")
+
+        result = @handler.handle(request)
+
+        assert_nil result
+      end
+
+      def test_handle_initialized_with_server
+        mock_server = Minitest::Mock.new
+        handler = HamlLsp::Server::RequestHandler.new(
+          store: @store,
+          cache_manager: @cache_manager,
+          enable_lint: false,
+          root_uri: nil,
+          server: mock_server
+        )
+
+        request = MockRequest.new(method: "initialized")
+
+        mock_server.expect(:create_work_done_progress_token, nil) { |token| token.is_a?(String) }
+        mock_server.expect(:send_progress_begin, nil) { |token, title| token.is_a?(String) && title.is_a?(String) }
+        mock_server.expect(:send_progress_end, nil) { |token| token.is_a?(String) }
+
+        result = handler.handle(request)
+
+        assert_nil result
+        mock_server.verify
+      end
     end
   end
 end

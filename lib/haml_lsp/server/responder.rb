@@ -73,6 +73,30 @@ module HamlLsp
       def show_error_message(text)
         send_message(HamlLsp::Message::Notification.window_show_message(text, type: HamlLsp::Constant::MessageType::ERROR))
       end
+
+      def create_work_done_progress_token(id)
+        request = HamlLsp::Message::Request.new(
+          id: id,
+          method: "window/workDoneProgress/create",
+          params: { token: id }
+        )
+        send_message(request)
+      end
+
+      def send_progress_begin(token, title, message: nil, percentage: nil)
+        notification = HamlLsp::Message::Notification.progress_begin(
+          token, title, message: message, percentage: percentage
+        )
+        send_message(notification)
+      end
+
+      def send_progress_report(token, message: nil, percentage: nil)
+        send_message(HamlLsp::Message::Notification.progress_report(token, message: message, percentage: percentage))
+      end
+
+      def send_progress_end(token)
+        send_message(HamlLsp::Message::Notification.progress_end(token))
+      end
     end
   end
 end
