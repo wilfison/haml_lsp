@@ -91,7 +91,6 @@ module HamlLsp
       return unless lru_uri
 
       delete(lru_uri)
-      HamlLsp.log("Removed LRU document to maintain size limit: #{lru_uri}")
     end
   end
 end
