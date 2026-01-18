@@ -19,6 +19,7 @@ require_relative "haml_lsp/action/html_to_haml"
 require_relative "haml_lsp/action/provider"
 
 require_relative "haml_lsp/autocorrect/classes_before_ids"
+require_relative "haml_lsp/autocorrect/indentation"
 require_relative "haml_lsp/autocorrect/final_newline"
 require_relative "haml_lsp/autocorrect/html_attributes"
 require_relative "haml_lsp/autocorrect/leading_comment_space"

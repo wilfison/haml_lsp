@@ -11,7 +11,8 @@ module HamlLsp
         "ClassesBeforeIds" => Autocorrect::ClassesBeforeIds,
         "SpaceBeforeScript" => Autocorrect::SpaceBeforeScript,
         "LeadingCommentSpace" => Autocorrect::LeadingCommentSpace,
-        "HtmlAttributes" => Autocorrect::HtmlAttributes
+        "HtmlAttributes" => Autocorrect::HtmlAttributes,
+        "Indentation" => Autocorrect::Indentation
       }.freeze
 
       AUTOCORRECTABLE_LINTS_FULL_CONTENT = {
