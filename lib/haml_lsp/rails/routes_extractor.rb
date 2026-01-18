@@ -8,17 +8,21 @@ module HamlLsp
 
       class << self
         def extract_routes(root_path)
-          return [] unless root_path
+          return {} unless root_path
 
           routes_output = fetch_routes_output(root_path)
+
+          if routes_output.strip.empty?
+            HamlLsp.log("Warning: No routes could be found. Ensure that the Rails application is set up correctly.")
+            return {}
+          end
+
           parse_routes(routes_output, root_path)
         end
 
         def fetch_routes_output(root_path)
-          cmd = "bundle exec rails routes --expanded"
-
           Dir.chdir(root_path) do
-            `#{cmd} 2>/dev/null`
+            `bundle exec rails routes --expanded 2>/dev/null`
           end
         end
 
