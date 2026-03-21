@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "open3"
+
 module HamlLsp
   module Rails
     # Module to extract Rails routes for autocompletion
@@ -21,9 +23,11 @@ module HamlLsp
         end
 
         def fetch_routes_output(root_path)
-          Dir.chdir(root_path) do
-            `bundle exec rails routes --expanded 2>/dev/null`
-          end
+          stdout, _status = Open3.capture2(
+            "bundle", "exec", "rails", "routes", "--expanded",
+            chdir: root_path
+          )
+          stdout
         end
 
         # Parse lines like:
@@ -38,7 +42,7 @@ module HamlLsp
         def parse_routes(output, root_path)
           routes = {}
           last_prefix = nil
-          output_blocks = output.gsub(Regexp.new("^#{root_path}/"), ".").split(/-+\[[\s\w]+\]-+\s*/)
+          output_blocks = output.gsub(/^#{Regexp.escape(root_path)}\//, ".").split(/-+\[[\s\w]+\]-+\s*/)
 
           output_blocks.each do |route_block|
             next if route_block.strip.empty?
