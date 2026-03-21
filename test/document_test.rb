@@ -53,5 +53,65 @@ module HamlLsp
 
       assert_empty document.diagnostics
     end
+
+    def test_apply_changes_full_replacement
+      @document.apply_changes([{ text: "%h2 Replaced" }])
+
+      assert_equal "%h2 Replaced", @document.content
+    end
+
+    def test_apply_changes_incremental_single_line_edit
+      document = HamlLsp::Document.new(uri: @uri, content: "%h1 Hello World\n")
+
+      change = {
+        range: { start: { line: 0, character: 4 }, end: { line: 0, character: 15 } },
+        text: "Goodbye"
+      }
+      document.apply_changes([change])
+
+      assert_equal "%h1 Goodbye\n", document.content
+    end
+
+    def test_apply_changes_incremental_insert
+      document = HamlLsp::Document.new(uri: @uri, content: "%h1 Hello\n%p World\n")
+
+      change = {
+        range: { start: { line: 1, character: 0 }, end: { line: 1, character: 0 } },
+        text: "%span New\n"
+      }
+      document.apply_changes([change])
+
+      assert_equal "%h1 Hello\n%span New\n%p World\n", document.content
+    end
+
+    def test_apply_changes_incremental_multiline_delete
+      document = HamlLsp::Document.new(uri: @uri, content: "%h1 Line1\n%h2 Line2\n%h3 Line3\n")
+
+      change = {
+        range: { start: { line: 0, character: 4 }, end: { line: 2, character: 4 } },
+        text: ""
+      }
+      document.apply_changes([change])
+
+      assert_equal "%h1 Line3\n", document.content
+    end
+
+    def test_apply_changes_multiple_incremental
+      document = HamlLsp::Document.new(uri: @uri, content: "%h1 AAA\n%h2 BBB\n")
+
+      changes = [
+        {
+          range: { start: { line: 0, character: 4 }, end: { line: 0, character: 7 } },
+          text: "XXX"
+        },
+        {
+          range: { start: { line: 1, character: 4 }, end: { line: 1, character: 7 } },
+          text: "YYY"
+        }
+      ]
+      document.apply_changes(changes)
+
+      assert_equal "%h1 XXX\n%h2 YYY\n", document.content
+    end
   end
 end

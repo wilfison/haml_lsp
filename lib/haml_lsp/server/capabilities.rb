@@ -8,7 +8,7 @@ module HamlLsp
         HamlLsp::Interface::ServerCapabilities.new(
           text_document_sync: HamlLsp::Interface::TextDocumentSyncOptions.new(
             open_close: true,
-            change: HamlLsp::Constant::TextDocumentSyncKind::FULL,
+            change: HamlLsp::Constant::TextDocumentSyncKind::INCREMENTAL,
             save: HamlLsp::Interface::SaveOptions.new(include_text: true)
           ),
           document_formatting_provider: HamlLsp::Interface::DocumentFormattingOptions.new(
