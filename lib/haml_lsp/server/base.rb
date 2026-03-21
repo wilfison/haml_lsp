@@ -8,11 +8,16 @@ module HamlLsp
 
       attr_reader :root_uri, :use_bundle, :enable_lint
 
-      def initialize(use_bundle: false, enable_lint: false, root_uri: nil)
+      def initialize(use_bundle: false, enable_lint: false, root_uri: nil,
+                     input: $stdin, output: $stdout)
         @root_uri = URI.decode_uri_component(root_uri.sub("file://", "")) if root_uri
         @use_bundle = use_bundle
         @enable_lint = enable_lint
         @initialized = false
+
+        @reader = HamlLsp::Message::Reader.new(input)
+        @writer = HamlLsp::Message::Writer.new(output)
+        HamlLsp.writer = @writer
 
         @state_manager = HamlLsp::Server::StateManager.new
         @cache_manager = HamlLsp::Server::CacheManager.new(root_uri: @root_uri, use_bundle: @use_bundle)
@@ -31,7 +36,7 @@ module HamlLsp
         HamlLsp.log("    Enable lint: #{@enable_lint}")
         HamlLsp.log("    Root URI: #{@root_uri || "not set"}")
 
-        HamlLsp.reader.each_message do |message|
+        @reader.each_message do |message|
           response_message = @request_handler.handle(message)
           next unless response_message
 

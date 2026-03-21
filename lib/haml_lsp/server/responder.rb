@@ -67,7 +67,8 @@ module HamlLsp
       end
 
       def send_message(message)
-        HamlLsp.writer.write(message.to_hash)
+        writer = instance_variable_defined?(:@writer) ? @writer : HamlLsp.writer
+        writer.write(message.to_hash)
       end
 
       def show_error_message(text)

@@ -61,12 +61,12 @@ require_relative "haml_lsp/server/base"
 module HamlLsp
   class Error < StandardError; end
 
-  def self.reader
-    @reader ||= HamlLsp::Message::Reader.new($stdin)
-  end
-
   def self.writer
     @writer ||= HamlLsp::Message::Writer.new($stdout)
+  end
+
+  def self.writer=(writer)
+    @writer = writer
   end
 
   def self.log(message, type: HamlLsp::Constant::MessageType::LOG)

@@ -54,7 +54,6 @@ module HamlLsp
       end
 
       def test_start_continues_after_request_handler_error
-        # Simulate a reader that yields two messages then stops
         message1 = HamlLsp::Message::Request.new(id: 1, method: "textDocument/completion", params: {})
         message2 = HamlLsp::Message::Request.new(id: 2, method: "shutdown", params: {})
 
@@ -80,10 +79,9 @@ module HamlLsp
           true
         end
 
-        HamlLsp.stub(:reader, mock_reader) do
-          @server.instance_variable_set(:@request_handler, mock_handler)
-          @server.start
-        end
+        @server.instance_variable_set(:@reader, mock_reader)
+        @server.instance_variable_set(:@request_handler, mock_handler)
+        @server.start
 
         assert_equal 2, messages_yielded.size, "Server should continue processing after an error"
       end
