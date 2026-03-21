@@ -52,6 +52,41 @@ module HamlLsp
 
         assert server.enable_lint
       end
+
+      def test_start_continues_after_request_handler_error
+        # Simulate a reader that yields two messages then stops
+        message1 = HamlLsp::Message::Request.new(id: 1, method: "textDocument/completion", params: {})
+        message2 = HamlLsp::Message::Request.new(id: 2, method: "shutdown", params: {})
+
+        messages_yielded = []
+        mock_reader = Minitest::Mock.new
+        mock_reader.expect(:each_message, nil) do |&block|
+          [message1, message2].each do |msg|
+            messages_yielded << msg
+            block.call(msg)
+          end
+        end
+
+        # Make request_handler raise on first message
+        call_count = 0
+        mock_handler = Minitest::Mock.new
+        mock_handler.expect(:handle, nil) do |_req|
+          call_count += 1
+          raise StandardError, "test error" if call_count == 1
+
+          HamlLsp::Message::Result.new(id: 2, response: nil)
+        end
+        mock_handler.expect(:handle, HamlLsp::Message::Result.new(id: 2, response: nil)) do |_req|
+          true
+        end
+
+        HamlLsp.stub(:reader, mock_reader) do
+          @server.instance_variable_set(:@request_handler, mock_handler)
+          @server.start
+        end
+
+        assert_equal 2, messages_yielded.size, "Server should continue processing after an error"
+      end
     end
   end
 end

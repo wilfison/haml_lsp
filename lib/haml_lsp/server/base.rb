@@ -37,9 +37,8 @@ module HamlLsp
 
           send_message(response_message)
         rescue StandardError => e
-          HamlLsp.log_error("Fatal error (##{message.id}:#{message.method}): #{e.message}")
+          HamlLsp.log_error("Error handling request (##{message.id}:#{message.method}): #{e.message}")
           HamlLsp.log_error(e.backtrace.join("\n"))
-          exit(1)
         end
       end
 
