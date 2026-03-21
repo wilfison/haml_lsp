@@ -63,6 +63,7 @@ module HamlLsp
           @server.send_progress_report(progress_token, message: "Loading Rails routes...", percentage: 50)
 
           @cache_manager.load_rails_routes_async
+          @cache_manager.load_partials_async
 
           @server.send_progress_end(progress_token)
         end
@@ -90,6 +91,7 @@ module HamlLsp
 
       def handle_did_save(request)
         @store.set(request.document_uri, request.document_content)
+        invalidate_partials_cache_if_needed(request.document_uri_path)
         lint_document(request)
       end
 
@@ -125,7 +127,8 @@ module HamlLsp
         items = completion_provider.handle(
           request,
           @cache_manager.rails_routes,
-          @root_uri
+          @root_uri,
+          partials_cache: @cache_manager.partials
         )
 
         HamlLsp.log("##{request.id}: Providing #{items.size} completion items")
@@ -174,6 +177,12 @@ module HamlLsp
 
       def handle_exit(_request)
         exit(0)
+      end
+
+      def invalidate_partials_cache_if_needed(path)
+        return unless path&.include?("app/views") && File.basename(path).start_with?("_")
+
+        @cache_manager.invalidate_partials
       end
 
       def linter

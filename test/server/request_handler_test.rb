@@ -67,7 +67,7 @@ module HamlLsp
         assert_nil result
       end
 
-      def test_handle_initialized_with_server
+      def test_handle_initialized_with_server_non_rails
         mock_server = Minitest::Mock.new
         handler = HamlLsp::Server::RequestHandler.new(
           store: @store,
@@ -79,8 +79,31 @@ module HamlLsp
 
         request = MockRequest.new(method: "initialized")
 
+        # Non-Rails project should not send progress notifications
+        result = handler.handle(request)
+
+        assert_nil result
+        mock_server.verify
+      end
+
+      def test_handle_initialized_with_server_rails_project
+        mock_server = Minitest::Mock.new
+        cache_manager = HamlLsp::Server::CacheManager.new(root_uri: "/tmp/test")
+        cache_manager.instance_variable_set(:@rails_project, true)
+
+        handler = HamlLsp::Server::RequestHandler.new(
+          store: @store,
+          cache_manager: cache_manager,
+          enable_lint: false,
+          root_uri: "/tmp/test",
+          server: mock_server
+        )
+
+        request = MockRequest.new(method: "initialized")
+
         mock_server.expect(:create_work_done_progress_token, nil) { |token| token.is_a?(String) }
-        mock_server.expect(:send_progress_begin, nil) { |token, title| token.is_a?(String) && title.is_a?(String) }
+        mock_server.expect(:send_progress_begin, nil) { true }
+        mock_server.expect(:send_progress_report, nil) { true }
         mock_server.expect(:send_progress_end, nil) { |token| token.is_a?(String) }
 
         result = handler.handle(request)

@@ -20,13 +20,15 @@ module HamlLsp
         # @param root_uri [String] The workspace root URI
         #
         # @return [Array<HamlLsp::Interface::CompletionItem>] List of completion items
-        def completion_items(request, line, root_uri)
+        def completion_items(request, line, root_uri, partials_cache = nil)
           return [] unless root_uri
 
           match = line.match(LINE_REGEXP)
           return [] unless match
 
-          partials = find_partials(request.document_uri_path, root_uri)
+          current_path = request.document_uri_path
+          cached = partials_cache && !partials_cache.empty? ? partials_cache : HamlLsp::Rails::PartialsScanner.scan(root_uri)
+          partials = add_distance(cached, current_path)
 
           build_completion_items(
             partials, {
@@ -39,97 +41,16 @@ module HamlLsp
 
         private
 
-        # Find all partial files in the views directory
-        # @param document_uri_path [String] Current document path
-        # @param root_uri [String] Workspace root
-        # @return [Array<Hash>] List of partial info hashes
-        def find_partials(document_uri_path, root_uri)
-          views_path = File.join(root_uri, "app", "views")
-          return [] unless Dir.exist?(views_path)
-
-          current_dir = File.dirname(document_uri_path)
-
-          partials = []
-          Dir.glob("#{views_path}/**/_*.haml").each do |file|
-            partial_info = extract_partial_info(file, views_path, current_dir)
-            partials << partial_info if partial_info
-          end
-
-          partials
-        end
-
-        # Extract partial information from file
-        # @param file [String] Full path to partial file
-        # @param views_path [String] Path to views directory
-        # @param current_dir [String] Current document directory
-        # @return [Hash, nil] Partial info or nil
-        def extract_partial_info(file, views_path, current_dir)
-          # Get relative path from views directory
-          relative_path = file.sub("#{views_path}/", "")
-
-          # Extract directory and filename
-          dir = File.dirname(relative_path)
-          filename = File.basename(relative_path, ".haml")
-
-          # Remove leading underscore from filename
-          partial_name = filename.sub(/^_/, "")
-
-          # Build full partial path
-          full_partial_name = if dir == "."
-                                partial_name
-                              else
-                                "#{dir}/#{partial_name}"
-                              end
-
-          # Extract locals from file
-          locals = extract_locals(file)
-
-          # Calculate distance score
-          distance = calculate_distance(current_dir, File.dirname(file))
-
-          {
-            name: full_partial_name,
-            file: file,
-            locals: locals,
-            distance: distance
-          }
-        end
-
-        # Extract locals from partial file comments
-        # Looks for: -# locals: (title:, body:, author: nil)
-        # @param file [String] Path to partial file
-        # @return [Array<Hash>] List of local variables
-        def extract_locals(file)
-          content = File.foreach(file).first(5).join("\n") # Read first 5 lines
-          locals = []
-
-          # Match -# locals: (var1:, var2: default_value)
-          match = content.match(/^-#\s*locals:\s*\(([^)]+)\)/)
-          return locals unless match
-
-          params_string = match[1]
-          params_string.split(",").each do |param|
-            param = param.strip
-            # Split by : to get name and default value
-            parts = param.split(":", 2)
-            var_name = parts[0].strip
-            default_value = parts[1]&.strip
-
-            locals << {
-              name: var_name,
-              default: default_value,
-              required: default_value.nil? || default_value.empty?
-            }
-          end
-
-          locals
-        rescue StandardError => e
-          HamlLsp.log("Error extracting locals from #{file}: #{e.message}")
-          []
-        end
-
         def calculate_distance(path1, path2)
           HamlLsp::Utils.path_distance(path1, path2)
+        end
+
+        # Add per-request distance to cached partials
+        def add_distance(cached_partials, document_uri_path)
+          current_dir = File.dirname(document_uri_path)
+          cached_partials.map do |partial|
+            partial.merge(distance: calculate_distance(current_dir, File.dirname(partial[:file])))
+          end
         end
 
         # Build completion items from partials

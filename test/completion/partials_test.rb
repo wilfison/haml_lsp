@@ -119,6 +119,27 @@ module Completion
       assert_equal result.first[:label], preselected[:label]
     end
 
+    def test_completion_items_uses_partials_cache_when_provided
+      cache = [
+        {
+          name: "cached/partial",
+          file: File.join(@views_path, "cached", "_partial.haml"),
+          locals: []
+        }
+      ]
+
+      result = HamlLsp::Completion::Partials.completion_items(
+        @request,
+        "= render('",
+        @tmpdir,
+        cache
+      )
+
+      # Should only contain the cached partial, not filesystem results
+      assert_equal 1, result.size
+      assert_equal "cached/partial", result.first[:label]
+    end
+
     # Testing through public API - private methods are implementation details
 
     private

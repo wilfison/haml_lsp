@@ -16,7 +16,7 @@ module HamlLsp
       # @param rails_routes_cache [Array<Hash>] Cached Rails routes for autocompletion
       # @param root_uri [String] The workspace root URI
       # @return [Array<HamlLsp::Interface::CompletionItem>] List of completion items
-      def handle(request, rails_routes_cache, root_uri = nil)
+      def handle(request, rails_routes_cache, root_uri = nil, partials_cache: [])
         document = store.get(request.document_uri)
         return [] unless document
 
@@ -27,7 +27,7 @@ module HamlLsp
 
         if rails_project?
           items += HamlLsp::Completion::Routes.completion_items(request, line, rails_routes_cache)
-          items += HamlLsp::Completion::Partials.completion_items(request, line, root_uri)
+          items += HamlLsp::Completion::Partials.completion_items(request, line, root_uri, partials_cache)
           items += HamlLsp::Completion::Assets.completion_items(line, root_uri)
         end
 

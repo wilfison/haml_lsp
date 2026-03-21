@@ -46,6 +46,34 @@ class CacheManagerTest < Minitest::Test
     end
   end
 
+  def test_partials_returns_empty_array_by_default
+    cache_manager = HamlLsp::Server::CacheManager.new(root_uri: nil)
+
+    assert_empty cache_manager.partials
+  end
+
+  def test_invalidate_partials
+    cache_manager = HamlLsp::Server::CacheManager.new(root_uri: nil)
+    cache_manager.partials # populate cache
+    cache_manager.invalidate_partials
+
+    # Should reload (returns empty since root_uri is nil)
+    assert_empty cache_manager.partials
+  end
+
+  def test_load_partials_async_loads_in_background
+    cache_manager = HamlLsp::Server::CacheManager.new(root_uri: "/tmp/test")
+    partials = [{ name: "shared/header", file: "/tmp/_header.haml", locals: [] }]
+
+    HamlLsp::Rails::PartialsScanner.stub(:scan, partials) do
+      cache_manager.load_partials_async
+
+      result = cache_manager.partials
+
+      assert_equal partials, result
+    end
+  end
+
   def test_rails_routes_waits_for_async_load
     cache_manager = HamlLsp::Server::CacheManager.new(root_uri: "/tmp/test")
     cache_manager.instance_variable_set(:@rails_project, true)

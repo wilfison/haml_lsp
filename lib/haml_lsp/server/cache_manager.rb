@@ -8,14 +8,15 @@ module HamlLsp
         @root_uri = root_uri
         @use_bundle = use_bundle
         @rails_routes_cache = nil
+        @partials_cache = nil
         @rails_project = nil
-        @loading_thread = nil
+        @routes_loading_thread = nil
+        @partials_loading_thread = nil
         @mutex = Mutex.new
       end
 
       def rails_routes
-        # Wait for background load to finish if in progress
-        @loading_thread&.join
+        @routes_loading_thread&.join
 
         @mutex.synchronize do
           load_rails_routes if @rails_project && @rails_routes_cache.nil?
@@ -24,8 +25,23 @@ module HamlLsp
       end
 
       def load_rails_routes_async
-        @loading_thread = Thread.new do
+        @routes_loading_thread = Thread.new do
           @mutex.synchronize { load_rails_routes }
+        end
+      end
+
+      def partials
+        @partials_loading_thread&.join
+
+        @mutex.synchronize do
+          load_partials if @partials_cache.nil?
+          @partials_cache || []
+        end
+      end
+
+      def load_partials_async
+        @partials_loading_thread = Thread.new do
+          @mutex.synchronize { load_partials }
         end
       end
 
@@ -35,6 +51,10 @@ module HamlLsp
 
       def invalidate_rails_routes
         @rails_routes_cache = nil
+      end
+
+      def invalidate_partials
+        @partials_cache = nil
       end
 
       private
@@ -48,6 +68,15 @@ module HamlLsp
         HamlLsp.log_error("Error extracting Rails routes")
         HamlLsp.log_error(e.message)
         @rails_routes_cache = {}
+      end
+
+      def load_partials
+        @partials_cache = HamlLsp::Rails::PartialsScanner.scan(@root_uri)
+        HamlLsp.log("Loaded #{@partials_cache.size} partials for autocompletion")
+      rescue StandardError => e
+        HamlLsp.log_error("Error scanning partials")
+        HamlLsp.log_error(e.message)
+        @partials_cache = []
       end
     end
   end

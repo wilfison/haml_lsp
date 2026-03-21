@@ -37,6 +37,7 @@ require_relative "haml_lsp/store"
 require_relative "haml_lsp/document"
 require_relative "haml_lsp/rails/detector"
 require_relative "haml_lsp/rails/routes_extractor"
+require_relative "haml_lsp/rails/partials_scanner"
 
 require_relative "haml_lsp/completion/tags"
 require_relative "haml_lsp/completion/attributes"
