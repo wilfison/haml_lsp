@@ -8,7 +8,7 @@ module HamlLsp
     # The configuration file used for linting
     attr_reader :config_file
 
-    def initialize(root_uri: false, config_file: nil)
+    def initialize(root_uri: nil, config_file: nil)
       @root_uri = root_uri
       @config_file = config_file || find_config_file
       @config = nil
