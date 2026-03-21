@@ -35,9 +35,9 @@ module HamlLsp
         @strategies ||= {
           "initialize" => method(:handle_initialize),
           "initialized" => method(:handle_initialized),
-          "textDocument/didOpen" => method(:handle_did_change),
+          "textDocument/didOpen" => method(:handle_did_open),
           "textDocument/didChange" => method(:handle_did_change),
-          "textDocument/didSave" => method(:handle_did_change),
+          "textDocument/didSave" => method(:handle_did_save),
           "textDocument/didClose" => method(:handle_did_close),
           "textDocument/formatting" => method(:handle_formatting),
           "textDocument/completion" => method(:handle_completion),
@@ -71,8 +71,22 @@ module HamlLsp
         nil
       end
 
+      def handle_did_open(request)
+        @store.set(request.document_uri, request.document_content)
+        lint_document(request)
+      end
+
       def handle_did_change(request)
         @store.set(request.document_uri, request.document_content)
+        lint_document(request)
+      end
+
+      def handle_did_save(request)
+        @store.set(request.document_uri, request.document_content)
+        lint_document(request)
+      end
+
+      def lint_document(request)
         return unless @enable_lint
 
         content = request.document_content
