@@ -30,6 +30,24 @@ module HamlLsp
       lines[line]
     end
 
+    # Calculate distance between two file paths based on directory levels
+    # @param path1 [String] First path
+    # @param path2 [String] Second path
+    # @return [Integer] Number of directory levels between paths
+    def self.path_distance(path1, path2)
+      parts1 = path1.split("/")
+      parts2 = path2.split("/")
+
+      common_length = 0
+      [parts1.length, parts2.length].min.times do |i|
+        break if parts1[i] != parts2[i]
+
+        common_length += 1
+      end
+
+      (parts1.length - common_length) + (parts2.length - common_length)
+    end
+
     def self.full_content_range(content)
       line_count = content.lines.size
       last_line_length = content.lines.last&.chomp&.length || 0

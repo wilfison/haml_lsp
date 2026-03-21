@@ -190,24 +190,8 @@ module HamlLsp
           base_score + proximity_bonus
         end
 
-        # Calculate distance between two paths
-        # @param path1 [String] First path
-        # @param path2 [String] Second path
-        # @return [Integer] Number of directory levels between paths
         def calculate_distance(path1, path2)
-          parts1 = path1.split("/")
-          parts2 = path2.split("/")
-
-          # Find common prefix length
-          common_length = 0
-          [parts1.length, parts2.length].min.times do |i|
-            break if parts1[i] != parts2[i]
-
-            common_length += 1
-          end
-
-          # Distance is the sum of remaining parts
-          (parts1.length - common_length) + (parts2.length - common_length)
+          HamlLsp::Utils.path_distance(path1, path2)
         end
 
         # Build LSP Location objects from partial files
