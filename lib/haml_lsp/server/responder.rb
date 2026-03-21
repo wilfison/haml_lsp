@@ -16,10 +16,6 @@ module HamlLsp
         HamlLsp::Message::Result.new(id: id, response: result)
       end
 
-      def lsp_respond_to_shutdown(request)
-        HamlLsp::Message::Result.new(id: request.id, response: nil)
-      end
-
       def lsp_respond_to_diagnostics(uri, diagnostics)
         HamlLsp::Message::Notification.publish_diagnostics(uri, diagnostics)
       end
