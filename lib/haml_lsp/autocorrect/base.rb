@@ -99,15 +99,6 @@ module HamlLsp
 
         content_lines.join("\n")
       end
-
-      def calc_script_indentation(line)
-        if line.strip.match?(/^:(\w+)$/)
-          [true, line[/^\s*/].to_s.length]
-        elsif inside_script_block
-          current_indentation = line[/^\s*/].to_s.length
-          [false, nil] if current_indentation <= last_script_indentation
-        end
-      end
     end
   end
 end
