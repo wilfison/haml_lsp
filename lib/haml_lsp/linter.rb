@@ -52,9 +52,8 @@ module HamlLsp
       possible_paths = []
 
       if root_uri
-        root_path = URI.parse(root_uri).path
-        possible_paths << File.join(root_path, ".haml-lint.yml")
-        possible_paths << File.join(root_path, "config", "haml-lint.yml")
+        possible_paths << File.join(root_uri, ".haml-lint.yml")
+        possible_paths << File.join(root_uri, "config", "haml-lint.yml")
       end
 
       possible_paths << File.join(Dir.pwd, ".haml-lint.yml")

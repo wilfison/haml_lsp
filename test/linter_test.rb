@@ -70,5 +70,27 @@ module HamlLsp
       # Verifica que source é haml_lint ou rubocop
       assert_includes %w[haml_lint rubocop], diagnostic.attributes[:source]
     end
+
+    def test_find_config_file_with_root_uri
+      Dir.mktmpdir do |dir|
+        config_path = File.join(dir, ".haml-lint.yml")
+        File.write(config_path, "linters:\n  LineLength:\n    enabled: false\n")
+
+        linter = HamlLsp::Linter.new(root_uri: dir)
+
+        assert_equal config_path, linter.config_file
+      end
+    end
+
+    def test_find_config_file_with_spaces_in_path
+      Dir.mktmpdir("path with spaces") do |dir|
+        config_path = File.join(dir, ".haml-lint.yml")
+        File.write(config_path, "linters:\n  LineLength:\n    enabled: false\n")
+
+        linter = HamlLsp::Linter.new(root_uri: dir)
+
+        assert_equal config_path, linter.config_file
+      end
+    end
   end
 end
