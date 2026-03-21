@@ -72,12 +72,13 @@ module HamlLsp
       end
 
       def handle_did_change(request)
+        @store.set(request.document_uri, request.document_content)
         return unless @enable_lint
 
-        document = @store.set(request.document_uri, request.document_content)
         content = request.document_content
         return if content.nil? || content.empty?
 
+        document = @store.get(request.document_uri)
         diagnostics = linter.lint_file(request.document_uri_path, content)
 
         # Save diagnostics in the document for code actions
