@@ -10,12 +10,16 @@ module HamlLsp
     DEFAULT_TTL = 3600
     # Default max documents: 1000
     DEFAULT_MAX_DOCUMENTS = 1000
+    # Default max document size: 10 MB
+    DEFAULT_MAX_DOCUMENT_SIZE = 10 * 1024 * 1024
 
-    def initialize(max_documents: DEFAULT_MAX_DOCUMENTS, ttl_seconds: DEFAULT_TTL)
+    def initialize(max_documents: DEFAULT_MAX_DOCUMENTS, ttl_seconds: DEFAULT_TTL,
+                   max_document_size: DEFAULT_MAX_DOCUMENT_SIZE)
       @documents = {}
       @access_times = {}
       @max_documents = max_documents
       @ttl_seconds = ttl_seconds
+      @max_document_size = max_document_size
     end
 
     def get(uri)
@@ -26,6 +30,7 @@ module HamlLsp
 
     def set(uri, content)
       return nil unless uri && content
+      return nil if content.bytesize > @max_document_size
 
       # Clean up before adding if we're at capacity
       cleanup_if_needed

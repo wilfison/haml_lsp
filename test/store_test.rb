@@ -187,6 +187,24 @@ module HamlLsp
       assert_instance_of HamlLsp::Document, store.get("file:///test1.haml")
     end
 
+    def test_set_rejects_document_exceeding_max_size
+      store = HamlLsp::Store.new(max_document_size: 100)
+
+      result = store.set("file:///big.haml", "a" * 101)
+
+      assert_nil result
+      assert_equal 0, store.size
+    end
+
+    def test_set_accepts_document_within_max_size
+      store = HamlLsp::Store.new(max_document_size: 100)
+
+      result = store.set("file:///small.haml", "a" * 50)
+
+      refute_nil result
+      assert_equal 1, store.size
+    end
+
     def test_delete_removes_access_time
       @store.set(@uri, @content)
       @store.delete(@uri)
