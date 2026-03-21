@@ -34,7 +34,7 @@ module HamlLsp
       rescue StandardError => e
         HamlLsp.log_error("Error extracting Rails routes")
         HamlLsp.log_error(e.message)
-        {}
+        @rails_routes_cache = {}
       end
     end
   end
