@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "open3"
-
 module HamlLsp
   module Rails
     # Module to extract Rails routes for autocompletion
@@ -42,7 +40,7 @@ module HamlLsp
         def parse_routes(output, root_path)
           routes = {}
           last_prefix = nil
-          output_blocks = output.gsub(/^#{Regexp.escape(root_path)}\//, ".").split(/-+\[[\s\w]+\]-+\s*/)
+          output_blocks = output.gsub(%r{^#{Regexp.escape(root_path)}/}, ".").split(/-+\[[\s\w]+\]-+\s*/)
 
           output_blocks.each do |route_block|
             next if route_block.strip.empty?

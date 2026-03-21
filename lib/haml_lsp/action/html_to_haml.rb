@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "html2haml"
-
 module HamlLsp
   module Action
     # Module to handle HTML/ERB to HAML conversion actions

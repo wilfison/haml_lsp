@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "open3"
 require "haml_lint"
 require "html2haml"
 require "language_server/protocol"
