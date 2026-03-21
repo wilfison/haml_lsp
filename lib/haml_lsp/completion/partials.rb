@@ -167,8 +167,8 @@ module HamlLsp
             documentation: documentation,
             text_edit: {
               range: {
-                start: options[:position][:character].to_i - 1,
-                end: options[:position][:character].to_i + 1
+                start: { line: options[:position][:line].to_i, character: options[:position][:character].to_i - 1 },
+                end: { line: options[:position][:line].to_i, character: options[:position][:character].to_i + 1 }
               },
               new_text: snippet
             },
