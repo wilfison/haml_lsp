@@ -28,4 +28,42 @@ class CacheManagerTest < Minitest::Test
 
     refute_predicate cache_manager, :rails_project?
   end
+
+  def test_load_rails_routes_async_loads_in_background
+    cache_manager = HamlLsp::Server::CacheManager.new(root_uri: "/tmp/test")
+
+    # Stub rails_project? to true and extraction to return test data
+    cache_manager.instance_variable_set(:@rails_project, true)
+    routes = { "users" => { prefix: "users", verbs: ["GET"] } }
+
+    HamlLsp::Rails::RoutesExtractor.stub(:extract_routes, routes) do
+      cache_manager.load_rails_routes_async
+
+      # rails_routes should wait for the thread and return results
+      result = cache_manager.rails_routes
+
+      assert_equal routes, result
+    end
+  end
+
+  def test_rails_routes_waits_for_async_load
+    cache_manager = HamlLsp::Server::CacheManager.new(root_uri: "/tmp/test")
+    cache_manager.instance_variable_set(:@rails_project, true)
+
+    routes = { "posts" => { prefix: "posts", verbs: ["POST"] } }
+
+    # Simulate slow extraction
+    slow_extract = lambda { |_path|
+      sleep(0.1)
+      routes
+    }
+
+    HamlLsp::Rails::RoutesExtractor.stub(:extract_routes, slow_extract) do
+      cache_manager.load_rails_routes_async
+
+      result = cache_manager.rails_routes
+
+      assert_equal routes, result
+    end
+  end
 end

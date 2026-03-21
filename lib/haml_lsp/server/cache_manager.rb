@@ -9,11 +9,24 @@ module HamlLsp
         @use_bundle = use_bundle
         @rails_routes_cache = nil
         @rails_project = nil
+        @loading_thread = nil
+        @mutex = Mutex.new
       end
 
       def rails_routes
-        load_rails_routes if @rails_project && @rails_routes_cache.nil?
-        @rails_routes_cache || {}
+        # Wait for background load to finish if in progress
+        @loading_thread&.join
+
+        @mutex.synchronize do
+          load_rails_routes if @rails_project && @rails_routes_cache.nil?
+          @rails_routes_cache || {}
+        end
+      end
+
+      def load_rails_routes_async
+        @loading_thread = Thread.new do
+          @mutex.synchronize { load_rails_routes }
+        end
       end
 
       def rails_project?

@@ -56,17 +56,16 @@ module HamlLsp
       def handle_initialized(_request)
         return nil unless @server
 
-        progress_token = "haml-lsp-init-#{Time.now.to_i}"
-        @server.create_work_done_progress_token(progress_token)
-
-        @server.send_progress_begin(progress_token, "Initializing HAML LSP")
-
         if @cache_manager.rails_project?
+          progress_token = "haml-lsp-init-#{Time.now.to_i}"
+          @server.create_work_done_progress_token(progress_token)
+          @server.send_progress_begin(progress_token, "Initializing HAML LSP")
           @server.send_progress_report(progress_token, message: "Loading Rails routes...", percentage: 50)
-          @cache_manager.rails_routes
-        end
 
-        @server.send_progress_end(progress_token)
+          @cache_manager.load_rails_routes_async
+
+          @server.send_progress_end(progress_token)
+        end
 
         nil
       end
