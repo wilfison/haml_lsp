@@ -44,6 +44,7 @@ module HamlLsp
           "textDocument/definition" => method(:handle_definition),
           "textDocument/codeAction" => method(:handle_code_action),
           "codeAction/resolve" => method(:handle_code_action_resolve),
+          "workspace/didChangeWatchedFiles" => method(:handle_did_change_watched_files),
           "shutdown" => method(:handle_shutdown),
           "exit" => method(:handle_exit)
         }
@@ -67,6 +68,8 @@ module HamlLsp
 
           @server.send_progress_end(progress_token)
         end
+
+        @server.register_file_watchers
 
         nil
       end
@@ -112,6 +115,25 @@ module HamlLsp
 
       def handle_did_close(request)
         @store.delete(request.document_uri)
+        nil
+      end
+
+      def handle_did_change_watched_files(request)
+        changes = request.params[:changes] || []
+        changes.each do |change|
+          path = decode_file_uri(change[:uri])
+
+          if path.end_with?("config/routes.rb")
+            @cache_manager.invalidate_rails_routes
+            @cache_manager.load_rails_routes_async
+          elsif path.end_with?(".haml-lint.yml")
+            linter.update_config if @enable_lint
+          elsif path.include?("app/views") && File.basename(path).start_with?("_") && path.end_with?(".haml")
+            @cache_manager.invalidate_partials
+            @cache_manager.load_partials_async
+          end
+        end
+
         nil
       end
 
@@ -177,6 +199,10 @@ module HamlLsp
 
       def handle_exit(_request)
         exit(0)
+      end
+
+      def decode_file_uri(uri)
+        URI.decode_uri_component(uri.to_s.sub("file://", ""))
       end
 
       def invalidate_partials_cache_if_needed(path)

@@ -94,6 +94,44 @@ module HamlLsp
       def send_progress_end(token)
         send_message(HamlLsp::Message::Notification.progress_end(token))
       end
+
+      def register_file_watchers
+        registration = HamlLsp::Interface::Registration.new(
+          id: "haml-lsp-file-watchers",
+          method: "workspace/didChangeWatchedFiles",
+          register_options: HamlLsp::Interface::DidChangeWatchedFilesRegistrationOptions.new(
+            watchers: file_watchers
+          )
+        )
+
+        request = HamlLsp::Message::Request.new(
+          id: "haml-lsp-register-watchers",
+          method: "client/registerCapability",
+          params: HamlLsp::Interface::RegistrationParams.new(registrations: [registration])
+        )
+        send_message(request)
+      end
+
+      private
+
+      def file_watchers
+        all_changes = HamlLsp::Constant::WatchKind::CREATE |
+                      HamlLsp::Constant::WatchKind::CHANGE |
+                      HamlLsp::Constant::WatchKind::DELETE
+
+        [
+          HamlLsp::Interface::FileSystemWatcher.new(
+            glob_pattern: "**/config/routes.rb",
+            kind: HamlLsp::Constant::WatchKind::CHANGE
+          ),
+          HamlLsp::Interface::FileSystemWatcher.new(glob_pattern: "**/.haml-lint.yml", kind: all_changes),
+          HamlLsp::Interface::FileSystemWatcher.new(glob_pattern: "**/config/haml-lint.yml", kind: all_changes),
+          HamlLsp::Interface::FileSystemWatcher.new(
+            glob_pattern: "**/app/views/**/_*.haml",
+            kind: HamlLsp::Constant::WatchKind::CREATE | HamlLsp::Constant::WatchKind::DELETE
+          )
+        ]
+      end
     end
   end
 end
