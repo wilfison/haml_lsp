@@ -1,4 +1,217 @@
 module HamlLsp
   VERSION: String
-  # See the writing guide of rbs: https://github.com/ruby/rbs#guides
+
+  class Error < StandardError
+  end
+
+  def self.writer: -> Message::Writer
+  def self.writer=: (Message::Writer writer) -> Message::Writer
+  def self.log: (String message, ?type: Integer) -> void
+  def self.log_error: (String message) -> void
+
+  class Document
+    attr_reader uri: String
+    attr_reader content: String
+    attr_reader diagnostics: Array[Hash[Symbol, untyped]]
+
+    def initialize: (uri: String, content: String) -> void
+    def update_content: (String new_content) -> String
+    def update_diagnostics: (Array[Hash[Symbol, untyped]]? new_diagnostics) -> Array[Hash[Symbol, untyped]]
+    def apply_changes: (Array[Hash[Symbol, untyped]] changes) -> void
+    def word_at_position: (Integer line, Integer character) -> String?
+    def line_at_position: (Integer line) -> String?
+  end
+
+  class Store
+    DEFAULT_TTL: Integer
+    DEFAULT_MAX_DOCUMENTS: Integer
+    DEFAULT_MAX_DOCUMENT_SIZE: Integer
+
+    attr_reader documents: Hash[String, Document]
+    attr_accessor max_documents: Integer
+    attr_accessor ttl_seconds: Integer
+
+    def initialize: (?max_documents: Integer, ?ttl_seconds: Integer, ?max_document_size: Integer) -> void
+    def get: (String uri) -> Document?
+    def set: (String uri, String content) -> Document?
+    def delete: (String uri) -> void
+    def clear: -> void
+    def each: () { (String, Document) -> void } -> void
+    def cleanup_stale_documents: -> Integer
+    def size: -> Integer
+  end
+
+  class Linter
+    attr_reader root_uri: String?
+    attr_reader config_file: String?
+
+    def initialize: (?root_uri: String?, ?config_file: String?) -> void
+    def lint_file: (String file_path, String file_content) -> Array[Hash[Symbol, untyped]]
+    def config: -> untyped
+    def update_config: -> untyped
+  end
+
+  module Message
+    class Base
+      attr_reader method: String
+      attr_reader params: Hash[Symbol, untyped]
+
+      def initialize: (method: String, ?params: Hash[Symbol, untyped]) -> void
+      def to_hash: -> Hash[Symbol, untyped]
+    end
+
+    class Request < Base
+      attr_reader id: (String | Integer)?
+
+      def initialize: (Hash[Symbol, untyped] data) -> void
+      def root_uri: -> String?
+      def document_uri: -> String?
+      def document_uri_path: -> String?
+      def document_content: -> String?
+      def to_hash: -> Hash[Symbol, untyped]
+    end
+
+    class Notification < Base
+      def self.window_show_message: (String message, Integer type) -> Notification
+      def self.window_log_message: (String message, Integer type) -> Notification
+      def self.telemetry: (Hash[Symbol, untyped] data) -> Notification
+      def self.progress_begin: ((String | Integer) id, String title, ?percentage: Integer?, ?message: String?) -> Notification
+      def self.progress_report: ((String | Integer) id, ?percentage: Integer?, ?message: String?) -> Notification
+      def self.progress_end: ((String | Integer) id) -> Notification
+      def self.publish_diagnostics: (String uri, Array[Hash[Symbol, untyped]] diagnostics, ?version: Integer?) -> Notification
+
+      def to_hash: -> Hash[Symbol, untyped]
+    end
+
+    class Result
+      attr_reader response: untyped
+      attr_reader id: (String | Integer)?
+
+      def initialize: (id: (String | Integer)?, response: untyped) -> void
+      def to_hash: -> Hash[Symbol, untyped]
+    end
+
+    class Reader
+      def initialize: (IO io) -> void
+      def each_message: () { (Request) -> void } -> void
+    end
+
+    class Writer
+      def initialize: (IO io) -> void
+      def write: (Hash[Symbol, untyped] message) -> void
+    end
+  end
+
+  module Server
+    class Base
+      include Responder
+
+      attr_reader root_uri: String?
+      attr_reader use_bundle: bool
+      attr_reader enable_lint: bool
+
+      def initialize: (?use_bundle: bool, ?enable_lint: bool, ?root_uri: String?, ?input: IO, ?output: IO) -> void
+      def start: -> void
+    end
+
+    class RequestHandler
+      include Responder
+
+      def initialize: (Store store, CacheManager cache_manager, ?enable_lint: bool, ?root_uri: String?, ?server: Base?) -> void
+      def handle: (Message::Request request) -> Message::Result?
+    end
+
+    module Capabilities
+      def self.server_capabilities: -> Hash[Symbol, untyped]
+    end
+
+    class StateManager
+      attr_reader initialized: bool
+
+      def initialize: -> void
+      def mark_initialized: -> void
+      def reset: -> void
+    end
+
+    class CacheManager
+      def initialize: (?root_uri: String?, ?use_bundle: bool) -> void
+      def rails_routes: -> Hash[String, Hash[Symbol, untyped]]
+      def load_rails_routes_async: -> Thread
+      def partials: -> Array[Hash[Symbol, untyped]]
+      def load_partials_async: -> Thread
+      def rails_project?: -> bool
+      def invalidate_rails_routes: -> void
+      def invalidate_partials: -> void
+    end
+
+    module Responder
+      def lsp_respond_to_initialize: ((String | Integer) id) -> Message::Result
+      def lsp_respond_to_diagnostics: (String uri, Array[Hash[Symbol, untyped]] diagnostics) -> Message::Notification
+      def lsp_respond_to_formatting: ((String | Integer) id, String formatted_content) -> Message::Result
+      def lsp_respond_to_completion: ((String | Integer) id, Array[Hash[Symbol, untyped]] items) -> Message::Result
+      def lsp_respond_to_code_action: ((String | Integer) id, Array[Hash[Symbol, untyped]] actions) -> Message::Result
+      def lsp_respond_to_code_action_resolve: ((String | Integer) id, Hash[Symbol, untyped] action) -> Message::Result
+      def lsp_respond_to_definition: ((String | Integer) id, Array[Hash[Symbol, untyped]] locations) -> Message::Result
+      def send_message: (Message::Base message) -> void
+      def show_error_message: (String text) -> void
+    end
+  end
+
+  module Completion
+    class Provider
+      attr_reader store: Store
+      attr_reader rails_project: bool
+
+      def initialize: (Store store, bool rails_project) -> void
+      def handle: (Message::Request request, Hash[String, Hash[Symbol, untyped]] rails_routes_cache, String? root_uri, Array[Hash[Symbol, untyped]] partials_cache) -> Array[Hash[Symbol, untyped]]
+    end
+  end
+
+  module Definition
+    class Provider
+      attr_reader store: Store
+      attr_reader rails_project: bool
+
+      def initialize: (Store store, bool rails_project) -> void
+      def handle: (Message::Request request, Hash[String, Hash[Symbol, untyped]] rails_routes_cache, String? root_uri) -> Array[Hash[Symbol, untyped]]
+    end
+  end
+
+  module Action
+    class Provider
+      def handle_request: (Message::Request request, bool enable_lint) -> Array[Hash[Symbol, untyped]]
+      def handle_resolve: (Message::Request request, Document document, Autocorrect::Base autocorrector) -> Hash[Symbol, untyped]?
+    end
+  end
+
+  module Autocorrect
+    class Base
+      AUTOCORRECTABLE_LINTS_BY_ROW: Hash[String, Class]
+      AUTOCORRECTABLE_LINTS_FULL_CONTENT: Hash[String, Class]
+
+      attr_reader linter: Linter
+
+      def self.autocorrectable?: (Hash[Symbol, untyped] diagnostic) -> bool
+      def self.autocorrectable_diagnostics: (Array[Hash[Symbol, untyped]] diagnostics) -> Array[Hash[Symbol, untyped]]
+
+      def initialize: (?linter: Linter?) -> void
+      def autocorrect: (String file_path, String file_content) -> String
+    end
+  end
+
+  module Rails
+    module Detector
+      def self.rails_project?: (String? root_path) -> bool
+    end
+
+    module RoutesExtractor
+      LINE_REGEXP: Regexp
+
+      def self.extract_routes: (String? root_path) -> Hash[String, Hash[Symbol, untyped]]
+      def self.fetch_routes_output: (String root_path) -> String
+      def self.parse_routes: (String output, String root_path) -> Hash[String, Hash[Symbol, untyped]]
+      def self.extract_route: (String route_block, String? last_prefix) -> Hash[Symbol, untyped]?
+      def self.extract_params: (String path) -> Array[String]
+    end
+  end
 end
