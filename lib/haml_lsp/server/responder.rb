@@ -66,6 +66,14 @@ module HamlLsp
         HamlLsp::Message::Result.new(id: id, response: response)
       end
 
+      def lsp_invalid_request(id, message)
+        HamlLsp::Message::Result.new(
+          id: id,
+          response: nil,
+          error: { code: -32_600, message: message }
+        )
+      end
+
       def lsp_respond_to_definition(id, locations)
         # Return nil if no locations found, otherwise return array of Location objects
         response = locations.empty? ? nil : locations

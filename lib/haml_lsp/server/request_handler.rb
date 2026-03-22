@@ -3,18 +3,23 @@
 module HamlLsp
   module Server
     # Request handler with strategy pattern for different request types
-    class RequestHandler
+    class RequestHandler # rubocop:disable Metrics/ClassLength
       include HamlLsp::Server::Responder
 
-      def initialize(store:, cache_manager:, enable_lint: false, root_uri: nil, server: nil)
+      def initialize(store:, cache_manager:, state_manager:, enable_lint: false, root_uri: nil, server: nil) # rubocop:disable Metrics/ParameterLists
         @store = store
         @cache_manager = cache_manager
+        @state_manager = state_manager
         @enable_lint = enable_lint
         @root_uri = root_uri
         @server = server
       end
 
       def handle(request)
+        if @state_manager.shutting_down? && !%w[exit shutdown].include?(request.method)
+          return lsp_invalid_request(request.id, "Server is shutting down")
+        end
+
         strategy = strategy_for(request.method)
         return nil unless strategy
 
@@ -216,11 +221,16 @@ module HamlLsp
       end
 
       def handle_shutdown(request)
+        @state_manager.mark_shutting_down
+        @store.clear
+        @cache_manager.shutdown
+        HamlLsp.log("Server shutting down")
         HamlLsp::Message::Result.new(id: request.id, response: nil)
       end
 
       def handle_exit(_request)
-        exit(0)
+        code = @state_manager.shutting_down? ? 0 : 1
+        exit(code)
       end
 
       def invalidate_partials_cache_if_needed(path)

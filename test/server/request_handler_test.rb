@@ -8,9 +8,11 @@ module HamlLsp
       def setup
         @store = HamlLsp::Store.new
         @cache_manager = HamlLsp::Server::CacheManager.new(root_uri: nil)
+        @state_manager = HamlLsp::Server::StateManager.new
         @handler = HamlLsp::Server::RequestHandler.new(
           store: @store,
           cache_manager: @cache_manager,
+          state_manager: @state_manager,
           enable_lint: false,
           root_uri: nil
         )
@@ -43,6 +45,7 @@ module HamlLsp
         handler = HamlLsp::Server::RequestHandler.new(
           store: @store,
           cache_manager: @cache_manager,
+          state_manager: @state_manager,
           enable_lint: true,
           root_uri: nil
         )
@@ -73,6 +76,7 @@ module HamlLsp
         handler = HamlLsp::Server::RequestHandler.new(
           store: @store,
           cache_manager: @cache_manager,
+          state_manager: @state_manager,
           enable_lint: false,
           root_uri: nil,
           server: mock_server
@@ -142,6 +146,7 @@ module HamlLsp
         handler = HamlLsp::Server::RequestHandler.new(
           store: @store,
           cache_manager: cache_manager,
+          state_manager: @state_manager,
           enable_lint: false,
           root_uri: "/tmp/test",
           server: mock_server
@@ -182,6 +187,7 @@ module HamlLsp
         handler = HamlLsp::Server::RequestHandler.new(
           store: @store,
           cache_manager: @cache_manager,
+          state_manager: @state_manager,
           enable_lint: true,
           root_uri: nil
         )
@@ -271,6 +277,61 @@ module HamlLsp
 
         assert routes_invalidated, "Expected routes invalidated"
         assert partials_invalidated, "Expected partials invalidated"
+      end
+
+      def test_shutdown_clears_store_and_caches
+        @store.set("file:///test.haml", "%h1 Hello")
+        request = MockRequest.new(method: "shutdown", id: 1)
+
+        result = @handler.handle(request)
+
+        assert_instance_of HamlLsp::Message::Result, result
+        assert_equal 0, @store.size
+        assert_predicate @state_manager, :shutting_down?
+      end
+
+      def test_requests_rejected_after_shutdown
+        @handler.handle(MockRequest.new(method: "shutdown", id: 1))
+
+        request = MockRequest.new(
+          method: "textDocument/completion",
+          id: 2,
+          document_uri: "file:///test.haml",
+          params: { position: { line: 0, character: 0 } }
+        )
+        result = @handler.handle(request)
+
+        assert_instance_of HamlLsp::Message::Result, result
+        error_hash = result.to_hash
+
+        assert_equal(-32_600, error_hash[:error][:code])
+        assert_equal "Server is shutting down", error_hash[:error][:message]
+      end
+
+      def test_exit_allowed_after_shutdown
+        @handler.handle(MockRequest.new(method: "shutdown", id: 1))
+
+        assert_raises(SystemExit) do
+          @handler.handle(MockRequest.new(method: "exit"))
+        end
+      end
+
+      def test_exit_code_zero_after_shutdown
+        @handler.handle(MockRequest.new(method: "shutdown", id: 1))
+
+        exit_error = assert_raises(SystemExit) do
+          @handler.handle(MockRequest.new(method: "exit"))
+        end
+
+        assert_equal 0, exit_error.status
+      end
+
+      def test_exit_code_one_without_shutdown
+        exit_error = assert_raises(SystemExit) do
+          @handler.handle(MockRequest.new(method: "exit"))
+        end
+
+        assert_equal 1, exit_error.status
       end
     end
   end

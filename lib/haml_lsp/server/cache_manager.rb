@@ -49,6 +49,13 @@ module HamlLsp
         @rails_project ||= HamlLsp::Rails::Detector.rails_project?(@root_uri)
       end
 
+      def shutdown
+        @routes_loading_thread&.join(5)
+        @partials_loading_thread&.join(5)
+        @rails_routes_cache = nil
+        @partials_cache = nil
+      end
+
       def invalidate_rails_routes
         @rails_routes_cache = nil
       end

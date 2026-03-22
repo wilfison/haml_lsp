@@ -24,6 +24,7 @@ module HamlLsp
         @request_handler = HamlLsp::Server::RequestHandler.new(
           store: store,
           cache_manager: @cache_manager,
+          state_manager: @state_manager,
           enable_lint: @enable_lint,
           root_uri: @root_uri,
           server: self
