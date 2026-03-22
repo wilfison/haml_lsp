@@ -78,7 +78,7 @@ module HamlLsp
       documents = @store.documents.values.to_a
 
       assert_equal 2, documents.length
-      assert(documents.all? { |d| d.is_a?(HamlLsp::Document) })
+      assert(documents.all?(HamlLsp::Document))
     end
 
     def test_set_returns_same_document_object_on_update
