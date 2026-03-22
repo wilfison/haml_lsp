@@ -15,6 +15,18 @@ module Autocorrect
       assert_equal("%div\n  %p Hello, World!", corrected_content)
     end
 
+    def test_handles_empty_string
+      assert_equal "", @autocorrector.autocorrect("", config: {})
+    end
+
+    def test_handles_only_newlines
+      assert_equal "", @autocorrector.autocorrect("\n\n\n", config: {})
+    end
+
+    def test_handles_single_trailing_newline
+      assert_equal "%div", @autocorrector.autocorrect("%div\n", config: {})
+    end
+
     def test_does_not_modify_content_without_trailing_empty_lines
       content = "%div\n\n  %p Hello, World!"
       corrected_content = @autocorrector.autocorrect(content, config: {})

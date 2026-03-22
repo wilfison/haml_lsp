@@ -53,6 +53,32 @@ module HamlLsp
         assert server.enable_lint
       end
 
+      def test_start_writes_response_for_requests
+        message = HamlLsp::Message::Request.new(id: 1, method: "initialize", params: { capabilities: {} })
+        written_messages = []
+
+        mock_reader = Minitest::Mock.new
+        mock_reader.expect(:each_message, nil) do |&block|
+          block.call(message)
+        end
+
+        mock_writer = Object.new
+        mock_writer.singleton_class.define_method(:write) { |msg| written_messages << msg }
+
+        @server.instance_variable_set(:@reader, mock_reader)
+        @server.instance_variable_set(:@writer, mock_writer)
+        HamlLsp.writer = mock_writer
+        @server.start
+
+        # Should have log messages + the initialize response
+        response = written_messages.find { |m| m[:id] == 1 }
+
+        refute_nil response, "Expected an initialize response with id=1"
+        assert response[:result]
+      ensure
+        HamlLsp.writer = HamlLsp::Message::Writer.new($stdout)
+      end
+
       def test_start_continues_after_request_handler_error
         message1 = HamlLsp::Message::Request.new(id: 1, method: "textDocument/completion", params: {})
         message2 = HamlLsp::Message::Request.new(id: 2, method: "shutdown", params: {})

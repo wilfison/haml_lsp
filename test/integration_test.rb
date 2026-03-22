@@ -24,11 +24,13 @@ class IntegrationTest < Minitest::Test
   end
 
   def teardown
+    @server_thread.kill
     @client_write.close unless @client_write.closed?
     @server_read.close unless @server_read.closed?
     @server_write.close unless @server_write.closed?
     @client_read.close unless @client_read.closed?
-    @server_thread.kill
+    # Reset global writer so other tests aren't affected by closed pipes
+    HamlLsp.writer = HamlLsp::Message::Writer.new($stdout)
   end
 
   def test_initialize_handshake

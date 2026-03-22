@@ -25,6 +25,23 @@ module Autocorrect
       assert_equal(input, corrected_content)
     end
 
+    def test_handles_empty_string
+      assert_equal "", @autocorrector.autocorrect("")
+    end
+
+    def test_does_not_modify_comments
+      input = "-# This is a comment"
+
+      assert_equal input, @autocorrector.autocorrect(input)
+    end
+
+    def test_handles_equals_without_space
+      input = '=link_to "Home", root_path'
+      expected = '= link_to "Home", root_path'
+
+      assert_equal expected, @autocorrector.autocorrect(input)
+    end
+
     def test_handles_mixed_indentation
       input = '  =  link_to "Home", root_path'
       expected_output = '  = link_to "Home", root_path'

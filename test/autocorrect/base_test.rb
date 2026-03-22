@@ -31,6 +31,30 @@ module Autocorrect
       refute(HamlLsp::Autocorrect::Base.autocorrectable?(diagnostic_haml_lint))
     end
 
+    def test_autocorrectable_returns_false_for_empty_diagnostics
+      assert_empty HamlLsp::Autocorrect::Base.autocorrectable_diagnostics([])
+    end
+
+    def test_autocorrect_handles_empty_content
+      corrected = @autocorrector.autocorrect("/tmp/test.haml", "")
+
+      assert_instance_of String, corrected
+    end
+
+    def test_autocorrect_handles_nil_content
+      corrected = @autocorrector.autocorrect("/tmp/test.haml", nil)
+
+      assert_instance_of String, corrected
+    end
+
+    def test_autocorrect_handles_unicode_content
+      content = "%h1 Héllo Wörld 🎉"
+      corrected = @autocorrector.autocorrect("/tmp/test.haml", content)
+
+      assert_includes corrected, "Héllo"
+      assert_includes corrected, "Wörld"
+    end
+
     def test_autocorrect_applies_rubocop_and_row_by_row_fixes
       file_path = "#{FIXTURES_PATH}/sample_with_issues.haml"
       file_content = File.read(file_path)

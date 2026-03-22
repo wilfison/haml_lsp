@@ -24,6 +24,20 @@ module Autocorrect
       assert_equal content, corrected_content
     end
 
+    def test_handles_empty_comment
+      assert_equal "-# ", @autocorrector.autocorrect("-#")
+    end
+
+    def test_handles_already_correct_with_multiple_spaces
+      input = "-#   spaced out"
+
+      assert_equal "-# spaced out", @autocorrector.autocorrect(input)
+    end
+
+    def test_handles_empty_string
+      assert_equal "", @autocorrector.autocorrect("")
+    end
+
     def test_autocorrect_does_not_modify_other_lines
       content = "%div Some content"
       corrected_content = @autocorrector.autocorrect(content)

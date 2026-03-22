@@ -86,6 +86,53 @@ module HamlLsp
         mock_server.verify
       end
 
+      def test_handle_rescues_errors_and_returns_nil
+        # Force a strategy that raises
+        @store.set("file:///test.haml", "%h1 Hello")
+        request = MockRequest.new(
+          method: "textDocument/formatting",
+          document_uri: "file:///crash.haml",
+          params: { textDocument: { uri: "file:///crash.haml" } }
+        )
+
+        # Stub the autocorrector to raise
+        bad_autocorrector = Object.new
+        def bad_autocorrector.autocorrect(*, **)
+          raise StandardError, "boom"
+        end
+        @handler.instance_variable_set(:@autocorrector, bad_autocorrector)
+        @store.set("file:///crash.haml", "%h1 Hello")
+
+        result = @handler.handle(request)
+
+        assert_nil result
+      end
+
+      def test_handle_error_does_not_crash_subsequent_requests
+        bad_autocorrector = Object.new
+        def bad_autocorrector.autocorrect(*, **)
+          raise StandardError, "boom"
+        end
+        @handler.instance_variable_set(:@autocorrector, bad_autocorrector)
+        @store.set("file:///crash.haml", "%h1 Hello")
+
+        crash_request = MockRequest.new(
+          method: "textDocument/formatting",
+          document_uri: "file:///crash.haml",
+          params: { textDocument: { uri: "file:///crash.haml" } }
+        )
+        @handler.handle(crash_request)
+
+        # Subsequent request should still work
+        close_request = MockRequest.new(
+          method: "textDocument/didClose",
+          document_uri: "file:///crash.haml"
+        )
+        result = @handler.handle(close_request)
+
+        assert_nil result
+      end
+
       def test_handle_initialized_with_server_rails_project
         mock_server = Minitest::Mock.new
         cache_manager = HamlLsp::Server::CacheManager.new(root_uri: "/tmp/test")

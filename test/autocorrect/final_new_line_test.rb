@@ -26,6 +26,26 @@ module Autocorrect
       assert_equal(expected_corrected_content, corrected_content)
     end
 
+    def test_handles_empty_string_with_present_true
+      result = @autocorrector.autocorrect("", config: { "present" => true })
+
+      assert_equal "\n", result
+    end
+
+    def test_handles_empty_string_with_present_false
+      result = @autocorrector.autocorrect("", config: { "present" => false })
+
+      assert_equal "", result
+    end
+
+    def test_collapses_multiple_trailing_newlines
+      content = "%h1 Title\n\n\n\n"
+
+      result = @autocorrector.autocorrect(content, config: { "present" => true })
+
+      assert_equal "%h1 Title\n", result
+    end
+
     def test_removes_final_newline_when_not_required
       content = ".container#main\n  .header#top\n    %h1 Title\n"
       expected_corrected_content = ".container#main\n  .header#top\n    %h1 Title"
