@@ -24,7 +24,9 @@ module HamlLsp
             ],
             resolve_provider: true
           ),
-          definition_provider: true
+          definition_provider: true,
+          document_highlight_provider: true,
+          references_provider: true
         )
       end
     end

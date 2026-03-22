@@ -42,6 +42,8 @@ module HamlLsp
           "textDocument/formatting" => method(:handle_formatting),
           "textDocument/completion" => method(:handle_completion),
           "textDocument/definition" => method(:handle_definition),
+          "textDocument/documentHighlight" => method(:handle_document_highlight),
+          "textDocument/references" => method(:handle_references),
           "textDocument/codeAction" => method(:handle_code_action),
           "codeAction/resolve" => method(:handle_code_action_resolve),
           "workspace/didChangeWatchedFiles" => method(:handle_did_change_watched_files),
@@ -121,7 +123,7 @@ module HamlLsp
       def handle_did_change_watched_files(request)
         changes = request.params[:changes] || []
         changes.each do |change|
-          path = decode_file_uri(change[:uri])
+          path = URI.decode_uri_component(change[:uri].to_s.sub("file://", ""))
 
           if path.end_with?("config/routes.rb")
             @cache_manager.invalidate_rails_routes
@@ -171,6 +173,26 @@ module HamlLsp
         lsp_respond_to_definition(request.id, locations)
       end
 
+      def handle_document_highlight(request)
+        document = @store.get(request.document_uri)
+        return lsp_respond_to_document_highlight(request.id, []) unless document
+
+        highlights = highlight_provider.handle(request, document)
+
+        HamlLsp.log("##{request.id}: Providing #{highlights.size} highlights")
+        lsp_respond_to_document_highlight(request.id, highlights)
+      end
+
+      def handle_references(request)
+        document = @store.get(request.document_uri)
+        return lsp_respond_to_references(request.id, []) unless document
+
+        locations = references_provider.handle(request, document, @root_uri)
+
+        HamlLsp.log("##{request.id}: Providing #{locations.size} references")
+        lsp_respond_to_references(request.id, locations)
+      end
+
       def handle_code_action(request)
         document = @store.get(request.document_uri)
         return lsp_respond_to_code_action(request.id, []) unless document
@@ -199,10 +221,6 @@ module HamlLsp
 
       def handle_exit(_request)
         exit(0)
-      end
-
-      def decode_file_uri(uri)
-        URI.decode_uri_component(uri.to_s.sub("file://", ""))
       end
 
       def invalidate_partials_cache_if_needed(path)
@@ -235,6 +253,14 @@ module HamlLsp
           store: @store,
           rails_project: @cache_manager.rails_project?
         )
+      end
+
+      def highlight_provider
+        @highlight_provider ||= HamlLsp::Highlight::Provider.new
+      end
+
+      def references_provider
+        @references_provider ||= HamlLsp::References::Provider.new
       end
     end
   end

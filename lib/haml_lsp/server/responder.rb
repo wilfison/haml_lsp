@@ -56,6 +56,16 @@ module HamlLsp
         HamlLsp::Message::Result.new(id: id, response: action)
       end
 
+      def lsp_respond_to_document_highlight(id, highlights)
+        response = highlights.empty? ? nil : highlights
+        HamlLsp::Message::Result.new(id: id, response: response)
+      end
+
+      def lsp_respond_to_references(id, locations)
+        response = locations.empty? ? nil : locations
+        HamlLsp::Message::Result.new(id: id, response: response)
+      end
+
       def lsp_respond_to_definition(id, locations)
         # Return nil if no locations found, otherwise return array of Location objects
         response = locations.empty? ? nil : locations
