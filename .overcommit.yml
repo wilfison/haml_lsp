@@ -1,0 +1,61 @@
+# Overcommit configuration for haml_lsp
+# See: https://github.com/sds/overcommit
+
+PreCommit:
+  ALL:
+    requires_files: true
+    on_warn: fail
+
+  RuboCop:
+    enabled: true
+    command: ["bundle", "exec", "rubocop"]
+    include:
+      - "**/*.rb"
+      - "**/*.rake"
+      - "Gemfile"
+      - "Rakefile"
+      - "*.gemspec"
+
+  BundleCheck:
+    enabled: true
+
+  TrailingWhitespace:
+    enabled: true
+    exclude:
+      - "**/*.md"
+      - "test/**/*"
+
+  HardTabs:
+    enabled: true
+
+  MergeConflicts:
+    enabled: true
+
+  YamlSyntax:
+    enabled: true
+    include:
+      - "**/*.yml"
+      - "**/*.yaml"
+
+  JsonSyntax:
+    enabled: true
+    include:
+      - "**/*.json"
+
+CommitMsg:
+  TextWidth:
+    enabled: true
+    max_subject_width: 72
+    max_body_width: 100
+
+  HardTabs:
+    enabled: true
+
+  TrailingPeriod:
+    enabled: true
+
+PrePush:
+  RakeTarget:
+    enabled: true
+    targets:
+      - "test"
