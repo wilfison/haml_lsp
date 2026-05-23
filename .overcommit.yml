@@ -57,5 +57,6 @@ CommitMsg:
 PrePush:
   RakeTarget:
     enabled: true
+    command: ["bundle", "exec", "rake"]
     targets:
       - "test"
