@@ -91,7 +91,8 @@ module HamlLsp
         end
 
         def convert_to_haml(html_content)
-          # Use html2haml to convert
+          require "html2haml"
+
           ::Html2haml::HTML.new(html_content, erb: true).to_haml
         end
       end
