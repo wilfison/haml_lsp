@@ -3,6 +3,7 @@
 $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
 
 require "irb"
+require "stringio"
 require "haml_lsp"
 
 require "minitest/autorun"
@@ -10,6 +11,10 @@ require "minitest/autorun"
 ENV["HAML_LSP_LOG_LEVEL"] = "fatal"
 
 FIXTURES_PATH = File.expand_path("fixtures", __dir__)
+
+# Silence LSP log output during tests so JSON-RPC messages don't pollute the test runner stdout.
+NULL_IO = StringIO.new
+HamlLsp.writer = HamlLsp::Message::Writer.new(NULL_IO)
 
 class MockRequest
   attr_reader :method, :document_uri, :document_content, :document_uri_path, :params, :id

@@ -9,7 +9,8 @@ module HamlLsp
         @server = HamlLsp::Server::Base.new(
           use_bundle: false,
           enable_lint: false,
-          root_uri: nil
+          root_uri: nil,
+          output: NULL_IO
         )
       end
 
@@ -35,20 +36,21 @@ module HamlLsp
 
       def test_server_with_root_uri
         server = HamlLsp::Server::Base.new(
-          root_uri: "file:///home/user/project"
+          root_uri: "file:///home/user/project",
+          output: NULL_IO
         )
 
         assert_equal "/home/user/project", server.root_uri
       end
 
       def test_server_with_use_bundle
-        server = HamlLsp::Server::Base.new(use_bundle: true)
+        server = HamlLsp::Server::Base.new(use_bundle: true, output: NULL_IO)
 
         assert server.use_bundle
       end
 
       def test_server_with_enable_lint
-        server = HamlLsp::Server::Base.new(enable_lint: true)
+        server = HamlLsp::Server::Base.new(enable_lint: true, output: NULL_IO)
 
         assert server.enable_lint
       end
@@ -76,7 +78,7 @@ module HamlLsp
         refute_nil response, "Expected an initialize response with id=1"
         assert response[:result]
       ensure
-        HamlLsp.writer = HamlLsp::Message::Writer.new($stdout)
+        HamlLsp.writer = HamlLsp::Message::Writer.new(NULL_IO)
       end
 
       def test_start_continues_after_request_handler_error
