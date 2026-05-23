@@ -54,6 +54,9 @@ CommitMsg:
   TrailingPeriod:
     enabled: true
 
+  CapitalizedSubject:
+    enabled: false
+
 PrePush:
   RakeTarget:
     enabled: true
