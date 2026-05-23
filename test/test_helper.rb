@@ -7,6 +7,7 @@ require "stringio"
 require "haml_lsp"
 
 require "minitest/autorun"
+require "minitest/mock"
 
 ENV["HAML_LSP_LOG_LEVEL"] = "fatal"
 

@@ -9,10 +9,11 @@ HAML LSP is a Ruby gem implementing the Language Server Protocol for HAML files.
 ## Common Commands
 
 ```bash
-bundle exec rake test        # Run full test suite
-bundle exec rake rubocop     # Run linter
-bundle exec rake             # Run both tests and rubocop (default task)
-bundle exec ruby -Ilib:test test/path/to/test_file.rb  # Run a single test file
+bin/test                                 # Run full test suite
+bin/test test/path/to/test_file.rb       # Run a single test file
+bin/test test/store_test.rb -n /pattern/ # Filter tests by name regex
+bundle exec rake rubocop                 # Run linter
+bundle exec rake                         # Run both tests and rubocop (default task)
 ```
 
 The executable is at `exe/haml_lsp` and accepts `--use-bundle`, `--enable-lint`, and `--root-uri=<path>` flags.

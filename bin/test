@@ -1,0 +1,13 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "bundler/setup"
+
+$LOAD_PATH.unshift File.expand_path("../lib", __dir__)
+$LOAD_PATH.unshift File.expand_path("../test", __dir__)
+
+files, options = ARGV.partition { |arg| File.file?(arg) }
+files = Dir["test/**/*_test.rb"] if files.empty?
+files.each { |f| require File.expand_path(f) }
+
+ARGV.replace(options)
